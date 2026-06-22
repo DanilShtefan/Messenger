@@ -1,6 +1,7 @@
 import path from 'node:path';
 import https from 'node:https';
 import http from 'node:http';
+import { fileURLToPath } from 'node:url';
 import express from 'express';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
@@ -12,11 +13,13 @@ import { chatRoutes } from './routes/chat.routes.js';
 import { messageRoutes } from './routes/message.routes.js';
 import { friendRoutes } from './routes/friend.routes.js';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 const app = express();
 
 app.use(cors({ origin: corsOrigin, credentials: true }));
 app.use(express.json({ limit: '1mb' }));
-app.use('/uploads', express.static(path.resolve(import.meta.dirname, '../uploads')));
+app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
 
 app.get('/api/music/chart', (_req, res) => {
   https.get('https://api.deezer.com/chart/0/tracks?limit=50', (deezerRes) => {
@@ -92,7 +95,7 @@ app.get('/api/movies/video/:identifier', async (req, res) => {
 });
 
 if (env.NODE_ENV === 'production') {
-  const clientDist = path.resolve(import.meta.dirname, '../../client/dist');
+  const clientDist = path.resolve(__dirname, '../../client/dist');
   app.use(express.static(clientDist));
   app.get('*', (_req, res) => {
     res.sendFile(path.join(clientDist, 'index.html'));
