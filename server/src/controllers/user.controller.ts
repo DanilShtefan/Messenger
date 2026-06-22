@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import type { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { userService } from '../services/user.service.js';
-import { isUserOnline } from '../socket/index.js';
+import { isUserOnline, getUserCurrentTrack, getUserCurrentMovie } from '../socket/index.js';
 
 const updateSchema = z.object({
   displayName: z.string().min(1).max(64).optional(),
@@ -15,7 +15,9 @@ export const userController = {
   async getById(req: Request, res: Response, next: NextFunction) {
     try {
       const user = await userService.getById(req.params.id as string, req.user?.userId);
-      res.json({ ...user, isOnline: isUserOnline(user.id) });
+      const currentTrack = getUserCurrentTrack(req.params.id as string);
+      const currentMovie = getUserCurrentMovie(req.params.id as string);
+      res.json({ ...user, isOnline: isUserOnline(user.id), currentTrack, currentMovie });
     } catch (err) {
       next(err);
     }

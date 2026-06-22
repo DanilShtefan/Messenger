@@ -156,3 +156,131 @@
 .avatarInputHidden {
   display: none;
 }
+
+.joinBtn {
+  flex-shrink: 0;
+  padding: 0.25rem 0.625rem;
+  border: 1px solid var(--color-accent);
+  border-radius: 0.375rem;
+  background: transparent;
+  color: var(--color-accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.joinBtn:hover {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.currentTrack {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--color-surface-alt);
+  border-radius: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.trackCover {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.trackMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.0625rem;
+  min-width: 0;
+  text-align: left;
+}
+
+.trackLabel {
+  font-size: 0.6875rem;
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.trackName {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trackArtist {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.currentMovie {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--color-surface-alt);
+  border-radius: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.movieCover {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 6px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-surface);
+  overflow: hidden;
+  position: relative;
+}
+
+.movieCoverImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.movieCoverFallback {
+  position: absolute;
+  color: var(--color-text-tertiary);
+}
+
+.movieMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.0625rem;
+  min-width: 0;
+  text-align: left;
+}
+
+.movieLabel {
+  font-size: 0.6875rem;
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.movieTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

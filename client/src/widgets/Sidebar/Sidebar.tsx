@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { MessageSquare, Users } from 'lucide-react';
+import { MessageSquare, Music, Film, Users, Play, Pause, SkipBack, SkipForward, Volume2 } from 'lucide-react';
 import { useAppSelector } from '@/app/hooks';
 import { connectSocket } from '@/shared/lib/socket';
 import { friendsApi } from '@/shared/api/friends.api';
+import { useMusicPlayer } from '@/shared/lib/MusicPlayerContext';
 import { Avatar } from '@/shared/ui';
 import { cn } from '@/shared/lib/helpers';
 import styles from './Sidebar.module.css';
@@ -13,24 +14,33 @@ export function Sidebar() {
   const location = useLocation();
   const user = useAppSelector((s) => s.user.currentUser);
   const [incomingCount, setIncomingCount] = useState(0);
+  const player = useMusicPlayer();
 
   const fetchCount = useCallback(() => {
     friendsApi.getIncoming().then((r) => setIncomingCount(r.length)).catch(() => {});
   }, []);
+  const [listenerCount, setListenerCount] = useState(0);
 
   useEffect(() => { fetchCount(); }, [fetchCount]);
 
   useEffect(() => {
     const socket = connectSocket();
+
     socket.on('friend:request', fetchCount);
     socket.on('friend:accept', fetchCount);
     socket.on('friend:reject', fetchCount);
+
+    socket.on('session:listeners', (p: { hostId: string; count: number }) => {
+      if (user && p.hostId === user.id) setListenerCount(p.count);
+    });
+
     return () => {
       socket.off('friend:request', fetchCount);
       socket.off('friend:accept', fetchCount);
       socket.off('friend:reject', fetchCount);
+      socket.off('session:listeners');
     };
-  }, [fetchCount]);
+  }, [fetchCount, user]);
 
   const isActive = (path: string) => {
     if (path === '/chats') return location.pathname.startsWith('/chats');
@@ -39,36 +49,114 @@ export function Sidebar() {
 
   return (
     <aside className={styles.sidebar}>
-      <div className={styles.section}>
-        <button
-          className={cn(styles.navItem, isActive(`/profile/${user?.id}`) && styles.active)}
-          onClick={() => user && navigate(`/profile/${user.id}`)}
-        >
-          <Avatar src={user?.avatarUrl ?? null} name={user?.displayName ?? '?'} size="sm" />
-          <span className={styles.navLabel}>{user?.displayName ?? 'Profile'}</span>
-        </button>
+      <div className={styles.nav}>
+        <div className={styles.section}>
+          <button
+            className={cn(styles.navItem, isActive(`/profile/${user?.id}`) && styles.active)}
+            onClick={() => user && navigate(`/profile/${user.id}`)}
+          >
+            <Avatar src={user?.avatarUrl ?? null} name={user?.displayName ?? '?'} size="sm" />
+            <span className={styles.navLabel}>{user?.displayName ?? 'Profile'}</span>
+          </button>
+        </div>
+
+        <div className={styles.section}>
+          <button
+            className={cn(styles.navItem, isActive('/chats') && styles.active)}
+            onClick={() => navigate('/chats')}
+          >
+            <MessageSquare size={20} className={styles.navIcon} />
+            <span className={styles.navLabel}>Messages</span>
+          </button>
+        </div>
+
+        <div className={styles.section}>
+          <button
+            className={cn(styles.navItem, isActive('/friends') && styles.active)}
+            onClick={() => navigate('/friends')}
+          >
+            <Users size={20} className={styles.navIcon} />
+            <span className={styles.navLabel}>Friends</span>
+            {incomingCount > 0 && <span className={styles.navBadge}>{incomingCount}</span>}
+          </button>
+        </div>
+
+        <div className={styles.section}>
+          <button
+            className={cn(styles.navItem, isActive('/music') && styles.active)}
+            onClick={() => navigate('/music')}
+          >
+            <Music size={20} className={styles.navIcon} />
+            <span className={styles.navLabel}>Music</span>
+            {listenerCount > 0 && <span className={styles.navBadge}>{listenerCount}</span>}
+          </button>
+        </div>
+
+        <div className={styles.section}>
+          <button
+            className={cn(styles.navItem, isActive('/movies') && styles.active)}
+            onClick={() => navigate('/movies')}
+          >
+            <Film size={20} className={styles.navIcon} />
+            <span className={styles.navLabel}>Movies</span>
+          </button>
+        </div>
       </div>
 
-      <div className={styles.section}>
-        <button
-          className={cn(styles.navItem, isActive('/chats') && styles.active)}
-          onClick={() => navigate('/chats')}
-        >
-          <MessageSquare size={20} className={styles.navIcon} />
-          <span className={styles.navLabel}>Messages</span>
-        </button>
-      </div>
+      {player.hostId && (
+        <div className={styles.sessionBadge}>
+          <Music size={12} />
+          <span>Listening with friend</span>
+          <button className={styles.leaveSessionBtn} onClick={player.leaveSession}>Leave</button>
+        </div>
+      )}
 
-      <div className={styles.section}>
-        <button
-          className={cn(styles.navItem, isActive('/friends') && styles.active)}
-          onClick={() => navigate('/friends')}
-        >
-          <Users size={20} className={styles.navIcon} />
-          <span className={styles.navLabel}>Friends</span>
-          {incomingCount > 0 && <span className={styles.navBadge}>{incomingCount}</span>}
-        </button>
-      </div>
+      {player.currentTrack && (
+        <div className={styles.miniPlayer}>
+          <div className={styles.miniTrack}>
+            <img
+              src={player.currentTrack.album.cover_small}
+              alt=""
+              className={styles.miniCover}
+            />
+            <div className={styles.miniInfo}>
+              <span className={styles.miniTitle}>{player.currentTrack.title}</span>
+              <span className={styles.miniArtist}>{player.currentTrack.artist.name}</span>
+            </div>
+          </div>
+
+          <div className={styles.miniControls}>
+            <button className={styles.miniBtn} onClick={player.prev}>
+              <SkipBack size={14} />
+            </button>
+            <button className={styles.miniBtn} onClick={player.togglePlay}>
+              {player.playing ? <Pause size={16} /> : <Play size={16} />}
+            </button>
+            <button className={styles.miniBtn} onClick={player.next}>
+              <SkipForward size={14} />
+            </button>
+            <div className={styles.miniVolume}>
+              <Volume2 size={12} />
+              <input
+                type="range"
+                className={styles.miniVolumeSlider}
+                min={0}
+                max={1}
+                step={0.05}
+                value={player.volume}
+                onChange={(e) => player.setVolume(Number(e.target.value))}
+              />
+            </div>
+          </div>
+
+          <div className={styles.miniProgress}>
+            <div
+              className={styles.miniProgressFill}
+              style={{ width: `${(player.progress / (player.duration || 30)) * 100}%` }}
+            />
+          </div>
+        </div>
+      )}
     </aside>
   );
 }

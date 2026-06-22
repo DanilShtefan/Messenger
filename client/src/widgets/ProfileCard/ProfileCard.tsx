@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Film } from 'lucide-react';
 import { useAppSelector } from '@/app/hooks';
 import { useFetchProfile } from '@/shared/hooks/useFetchProfile';
 import { useOnlineStatus } from '@/shared/hooks/useOnlineStatus';
+import { moviesApi } from '@/shared/api/movies.api';
 import { profileApi } from '@/shared/api/profile.api';
 import { friendsApi } from '@/shared/api/friends.api';
 import { chatsApi } from '@/shared/api/chats.api';
 import { cn } from '@/shared/lib/helpers';
+import { useMusicPlayer } from '@/shared/lib/MusicPlayerContext';
 import { Avatar, Button, Input, Skeleton } from '@/shared/ui';
 import type { User, UserProfile } from '@/shared/types';
 import styles from './ProfileCard.module.css';
@@ -23,6 +26,7 @@ export function ProfileCard({ userId }: ProfileCardProps) {
   const [friends, setFriends] = useState<User[]>([]);
   const [sent, setSent] = useState<User[]>([]);
   const [sending, setSending] = useState(false);
+  const player = useMusicPlayer();
 
   const fetchState = useCallback(async () => {
     const [friendsData, sentData] = await Promise.all([
@@ -188,6 +192,49 @@ export function ProfileCard({ userId }: ProfileCardProps) {
               <p className={styles.aboutEmpty}>No bio yet</p>
             )}
           </div>
+
+          {profile.currentTrack && (
+            <div className={styles.currentTrack}>
+              <img
+                src={profile.currentTrack.cover}
+                alt=""
+                className={styles.trackCover}
+              />
+              <div className={styles.trackMeta}>
+                <span className={styles.trackLabel}>Listening to</span>
+                <span className={styles.trackName}>{profile.currentTrack.title}</span>
+                <span className={styles.trackArtist}>{profile.currentTrack.artist}</span>
+              </div>
+              {!isOwn && player.hostId !== userId && (
+                <button className={styles.joinBtn} onClick={() => player.joinSession(userId)}>
+                  Join
+                </button>
+              )}
+              {player.hostId === userId && (
+                <button className={styles.joinBtn} onClick={player.leaveSession}>
+                  Leave
+                </button>
+              )}
+            </div>
+          )}
+
+          {profile.currentMovie && (
+            <div className={styles.currentMovie}>
+              <div className={styles.movieCover}>
+                <img
+                  src={moviesApi.getThumbnail(profile.currentMovie.identifier)}
+                  alt=""
+                  className={styles.movieCoverImg}
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                />
+                <Film className={styles.movieCoverFallback} size={20} />
+              </div>
+              <div className={styles.movieMeta}>
+                <span className={styles.movieLabel}>Watching</span>
+                <span className={styles.movieTitle}>{profile.currentMovie.title}</span>
+              </div>
+            </div>
+          )}
 
           {isOwn ? (
             <div className={styles.actions}>
