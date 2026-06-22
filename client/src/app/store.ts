@@ -1,12 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { injectStore } from '@/shared/api/axiosInstance';
 import { userReducer } from '@/entities/user/user.slice';
-import { themeReducer } from './theme.slice';
+import { settingsReducer } from './settings.slice';
 
 export const store = configureStore({
   reducer: {
     user: userReducer,
-    theme: themeReducer,
+    settings: settingsReducer,
   },
   devTools: import.meta.env.DEV,
 });

@@ -3,3 +3,10 @@
   height: 100vh;
   overflow: hidden;
 }
+
+.content {
+  flex: 1;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}

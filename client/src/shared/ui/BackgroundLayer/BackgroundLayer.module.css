@@ -1,0 +1,30 @@
+.background {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  transition: background 0.5s ease;
+}
+
+.background::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(100, 80, 200, 0.55),
+    rgba(60, 40, 160, 0.65)
+  );
+}
+
+.background {
+  background: var(--bg-image) center / cover no-repeat;
+}
+
+[data-theme='light'] .background::after {
+  background: linear-gradient(
+    135deg,
+    rgba(160, 140, 240, 0.4),
+    rgba(120, 100, 220, 0.5)
+  );
+}

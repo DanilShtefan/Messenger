@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { MessageSquare, Music, Film, Users, LogOut, Play, Pause, SkipBack, SkipForward, Volume2 } from 'lucide-react';
+import { MessageSquare, Music, Film, Users, Settings, LogOut, Play, Pause, SkipBack, SkipForward, Volume2 } from 'lucide-react';
 import { useAppSelector } from '@/app/hooks';
 import { connectSocket } from '@/shared/lib/socket';
 import { friendsApi } from '@/shared/api/friends.api';
 import { useMusicPlayer } from '@/shared/lib/MusicPlayerContext';
 import { useLogout } from '@/shared/hooks/useLogout';
+import { SettingsDrawer } from '@/widgets/SettingsDrawer/SettingsDrawer';
 import { Avatar } from '@/shared/ui';
 import { cn } from '@/shared/lib/helpers';
 import styles from './Sidebar.module.css';
@@ -15,6 +16,7 @@ export function Sidebar() {
   const location = useLocation();
   const user = useAppSelector((s) => s.user.currentUser);
   const [incomingCount, setIncomingCount] = useState(0);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const player = useMusicPlayer();
   const logout = useLogout();
 
@@ -114,6 +116,13 @@ export function Sidebar() {
         <div className={styles.spacer} />
 
         <div className={styles.section}>
+          <button className={styles.navItem} onClick={() => setSettingsOpen(true)}>
+            <Settings size={20} className={styles.navIcon} />
+            <span className={styles.navLabel}>Settings</span>
+          </button>
+        </div>
+
+        <div className={styles.section}>
           <button className={styles.navItem} onClick={() => logout().then(() => navigate('/login'))}>
             <LogOut size={20} className={styles.navIcon} />
             <span className={styles.navLabel}>Log out</span>
@@ -175,6 +184,8 @@ export function Sidebar() {
           </div>
         </div>
       )}
+
+      <SettingsDrawer open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </aside>
   );
 }

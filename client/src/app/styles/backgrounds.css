@@ -1,0 +1,25 @@
+/* ───────── Background presets ───────── */
+:root,
+[data-background='none'] {
+  --bg-image: none;
+}
+
+[data-background='nature'] {
+  --bg-image: url('/backgrounds/dark/nature.jpg');
+}
+
+[data-background='ocean'] {
+  --bg-image: url('/backgrounds/dark/ocean.jpg');
+}
+
+[data-background='city'] {
+  --bg-image: url('/backgrounds/dark/city.jpg');
+}
+
+[data-background='abstract'] {
+  --bg-image: url('/backgrounds/dark/abstract.jpg');
+}
+
+[data-background='cosmos'] {
+  --bg-image: url('/backgrounds/dark/cosmos.jpg');
+}

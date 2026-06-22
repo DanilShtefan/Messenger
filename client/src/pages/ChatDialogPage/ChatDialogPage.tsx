@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Sidebar } from '@/widgets/Sidebar/Sidebar';
 import { ChatWindow } from '@/widgets/ChatWindow/ChatWindow';
 import { ErrorBoundary } from '@/app/providers/ErrorBoundary';
+import { BackgroundLayer } from '@/shared/ui/BackgroundLayer/BackgroundLayer';
 import { useFetchChats } from '@/shared/hooks/useFetchChats';
 import { useAppSelector } from '@/app/hooks';
 import styles from './ChatDialogPage.module.css';
@@ -23,6 +24,9 @@ export function ChatDialogPage() {
         <ErrorBoundary>
           <Sidebar />
         </ErrorBoundary>
+        <div className={styles.content}>
+          <BackgroundLayer />
+        </div>
       </div>
     );
   }
@@ -37,13 +41,16 @@ export function ChatDialogPage() {
       <ErrorBoundary>
         <Sidebar />
       </ErrorBoundary>
-      <ErrorBoundary>
-        <ChatWindow
-          dialogId={dialogId}
-          participantName={participantName}
-          participantAvatar={participantAvatar}
-        />
-      </ErrorBoundary>
+      <div className={styles.content}>
+        <BackgroundLayer />
+        <ErrorBoundary>
+          <ChatWindow
+            dialogId={dialogId}
+            participantName={participantName}
+            participantAvatar={participantAvatar}
+          />
+        </ErrorBoundary>
+      </div>
     </div>
   );
 }
