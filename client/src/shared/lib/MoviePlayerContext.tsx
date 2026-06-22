@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, useCallback, useMemo, type ReactNode } from 'react';
 import { connectSocket } from '@/shared/lib/socket';
 
 interface MovieData {
@@ -46,6 +46,7 @@ export function MoviePlayerProvider({ children }: { children: ReactNode }) {
   const movieRef = useRef(currentMovie);
   const positionRef = useRef(position);
   const pendingRef = useRef<PendingCommand | null>(null);
+  const lastTimeRef = useRef(0);
 
   playingRef.current = playing;
   movieRef.current = currentMovie;
@@ -153,7 +154,7 @@ export function MoviePlayerProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  function playMovie(movie: MovieData) {
+  const playMovie = useCallback((movie: MovieData) => {
     if (hostRef.current) return;
 
     setCurrentMovie(movie);
@@ -164,9 +165,9 @@ export function MoviePlayerProvider({ children }: { children: ReactNode }) {
     controlVideo(0, true);
     emitPlay(movie);
     emitSync(0);
-  }
+  }, []);
 
-  function stopMovie() {
+  const stopMovie = useCallback(() => {
     const wasHost = !hostRef.current;
     setCurrentMovie(null);
     setPlaying(false);
@@ -179,9 +180,9 @@ export function MoviePlayerProvider({ children }: { children: ReactNode }) {
     } else {
       leaveSession();
     }
-  }
+  }, []);
 
-  function togglePlay() {
+  const togglePlay = useCallback(() => {
     if (hostRef.current || !videoRef.current) return;
 
     if (playingRef.current) {
@@ -195,80 +196,89 @@ export function MoviePlayerProvider({ children }: { children: ReactNode }) {
       playingRef.current = true;
       emitSync(videoRef.current.currentTime);
     }
-  }
+  }, []);
 
-  function seek(time: number) {
+  const seek = useCallback((time: number) => {
     if (hostRef.current || !videoRef.current) return;
     videoRef.current.currentTime = time;
     setPosition(time);
     positionRef.current = time;
     emitSync(time);
-  }
+  }, []);
 
-  function onPlay() {
+  const onPlay = useCallback(() => {
     if (hostRef.current) return;
     setPlaying(true);
     playingRef.current = true;
     if (videoRef.current) emitSync(videoRef.current.currentTime);
-  }
+  }, []);
 
-  function onPause() {
+  const onPause = useCallback(() => {
     if (hostRef.current) return;
     setPlaying(false);
     playingRef.current = false;
     if (videoRef.current) emitSync(videoRef.current.currentTime);
-  }
+  }, []);
 
-  function onTimeUpdate(time: number) {
-    setPosition(time);
-    positionRef.current = time;
-  }
+  const onTimeUpdate = useCallback((time: number) => {
+    const now = Date.now();
+    if (now - lastTimeRef.current > 250) {
+      lastTimeRef.current = now;
+      setPosition(time);
+      positionRef.current = time;
+    }
+  }, []);
 
-  function onDurationChange(dur: number) {
+  const onDurationChange = useCallback((dur: number) => {
     setDuration(dur);
-  }
+  }, []);
 
-  function onSeeked(time: number) {
+  const onSeeked = useCallback((time: number) => {
     if (hostRef.current) return;
     setPosition(time);
     positionRef.current = time;
     emitSync(time);
-  }
+  }, []);
 
-  function joinSession(id: string) {
+  const joinSession = useCallback((id: string) => {
     setHostId(id);
     hostRef.current = id;
     emitSocket('movie:join', id);
-  }
+  }, []);
 
-  function leaveSession() {
+  const leaveSession = useCallback(() => {
     setHostId(null);
     hostRef.current = null;
     emitSocket('movie:leave');
-  }
+  }, []);
+
+  const value = useMemo(() => ({
+    currentMovie,
+    playing,
+    position,
+    duration,
+    hostId,
+    attachVideo,
+    playMovie,
+    stopMovie,
+    togglePlay,
+    seek,
+    onPlay,
+    onPause,
+    onTimeUpdate,
+    onDurationChange,
+    onSeeked,
+    joinSession,
+    leaveSession,
+  }), [
+    currentMovie, playing, position, duration, hostId,
+    attachVideo, playMovie, stopMovie, togglePlay, seek,
+    onPlay, onPause, onTimeUpdate, onDurationChange, onSeeked,
+    joinSession, leaveSession,
+  ]);
 
   return (
-    <MoviePlayerContext.Provider
-      value={{
-        currentMovie,
-        playing,
-        position,
-        duration,
-        hostId,
-        attachVideo,
-        playMovie,
-        stopMovie,
-        togglePlay,
-        seek,
-        onPlay,
-        onPause,
-        onTimeUpdate,
-        onDurationChange,
-        onSeeked,
-        joinSession,
-        leaveSession,
-      }}
-    >
+    <MoviePlayerContext.Provider value={value}>
       {children}
     </MoviePlayerContext.Provider>
   );

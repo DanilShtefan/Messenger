@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, useCallback, useMemo, type ReactNode } from 'react';
 import type { DeezerTrack } from '@/shared/api/music.api';
 import { connectSocket } from '@/shared/lib/socket';
 
@@ -71,7 +71,7 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
     const saved = localStorage.getItem('musicVolume');
     return saved ? Number(saved) : 1;
   });
-  const [tracks, setTracks] = useState<DeezerTrack[]>([]);
+  const [tracks, setTracksState] = useState<DeezerTrack[]>([]);
   const [hostId, setHostId] = useState<string | null>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -81,6 +81,7 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
   const progressRef = useRef(progress);
   const playingRef = useRef(playing);
   const trackRef = useRef(currentTrack);
+  const lastTimeRef = useRef(0);
   tracksRef.current = tracks;
   progressRef.current = progress;
   playingRef.current = playing;
@@ -132,7 +133,11 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
     });
 
     audio.addEventListener('timeupdate', () => {
-      setProgress(audio.currentTime);
+      const now = Date.now();
+      if (now - lastTimeRef.current > 250) {
+        lastTimeRef.current = now;
+        setProgress(audio.currentTime);
+      }
     });
 
     audio.addEventListener('ended', () => {
@@ -224,7 +229,7 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  function play(track: DeezerTrack) {
+  const play = useCallback((track: DeezerTrack) => {
     if (hostRef.current) return;
 
     setCurrentTrack(track);
@@ -235,9 +240,9 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
     loadAudio(track, 0, true);
     emitPlay(track);
     emitSync(0);
-  }
+  }, []);
 
-  function togglePlay() {
+  const togglePlay = useCallback(() => {
     if (hostRef.current) return;
     if (!audioRef.current) return;
 
@@ -252,27 +257,27 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
       setPlaying(true);
       emitSync(audioRef.current.currentTime);
     }
-  }
+  }, []);
 
-  function seek(time: number) {
+  const seek = useCallback((time: number) => {
     if (hostRef.current) return;
     if (audioRef.current) {
       audioRef.current.currentTime = time;
     }
     setProgress(time);
     emitSync(time);
-  }
+  }, []);
 
-  function setVolume(v: number) {
+  const setVolume = useCallback((v: number) => {
     setVolumeState(v);
     volumeRef.current = v;
     localStorage.setItem('musicVolume', String(v));
     if (audioRef.current) {
       audioRef.current.volume = v;
     }
-  }
+  }, []);
 
-  function next() {
+  const nextTrack = useCallback(() => {
     if (hostRef.current) return;
     const track = trackRef.current;
     const list = tracksRef.current;
@@ -280,9 +285,9 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
     const idx = list.findIndex((t) => t.id === track.id);
     if (idx === -1 || idx >= list.length - 1) return;
     play(list[idx + 1]!);
-  }
+  }, [play]);
 
-  function prev() {
+  const prevTrack = useCallback(() => {
     if (hostRef.current) return;
     const track = trackRef.current;
     const list = tracksRef.current;
@@ -290,7 +295,7 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
     const idx = list.findIndex((t) => t.id === track.id);
     if (idx <= 0) return;
     play(list[idx - 1]!);
-  }
+  }, [play]);
 
   const joinSession = useCallback((id: string) => {
     setHostId(id);
@@ -304,27 +309,33 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
     connectSocket().emit('music:leave');
   }, []);
 
+  const setTracks = useCallback((next: DeezerTrack[]) => setTracksState(next), []);
+
+  const value = useMemo(() => ({
+    currentTrack,
+    playing,
+    progress,
+    duration,
+    volume,
+    tracks,
+    setTracks,
+    play,
+    togglePlay,
+    seek,
+    setVolume,
+    next: nextTrack,
+    prev: prevTrack,
+    hostId,
+    joinSession,
+    leaveSession,
+  }), [
+    currentTrack, playing, progress, duration, volume, tracks,
+    hostId, setTracks, play, togglePlay, seek, setVolume,
+    nextTrack, prevTrack, joinSession, leaveSession,
+  ]);
+
   return (
-    <MusicPlayerContext.Provider
-      value={{
-        currentTrack,
-        playing,
-        progress,
-        duration,
-        volume,
-        tracks,
-        setTracks,
-        play,
-        togglePlay,
-        seek,
-        setVolume,
-        next,
-        prev,
-        hostId,
-        joinSession,
-        leaveSession,
-      }}
-    >
+    <MusicPlayerContext.Provider value={value}>
       {children}
     </MusicPlayerContext.Provider>
   );
