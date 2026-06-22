@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import { ErrorBoundary } from '@/app/providers/ErrorBoundary';
@@ -6,17 +7,19 @@ import { MoviePlayerProvider } from '@/shared/lib/MoviePlayerContext';
 import { AuthGuard } from '@/features/auth/AuthGuard';
 import { GuestGuard } from '@/features/auth/GuestGuard';
 import { useAuthInit } from '@/shared/hooks/useAuthInit';
-import { LoginPage } from '@/pages/LoginPage/LoginPage';
-import { RegisterPage } from '@/pages/RegisterPage/RegisterPage';
-import { ProfilePage } from '@/pages/ProfilePage/ProfilePage';
-import { ChatsPage } from '@/pages/ChatsPage/ChatsPage';
-import { ChatDialogPage } from '@/pages/ChatDialogPage/ChatDialogPage';
-import { FriendsPage } from '@/pages/FriendsPage/FriendsPage';
-import { MusicPage } from '@/pages/MusicPage/MusicPage';
-import { MoviesPage } from '@/pages/MoviesPage/MoviesPage';
 import { MainLayout } from '@/widgets/MainLayout/MainLayout';
+import styles from './App.module.css';
 
-const NotFoundPage = () => <div>404 Not Found</div>;
+const LoginPage = lazy(() => import('@/pages/LoginPage/LoginPage').then((m) => ({ default: m.LoginPage })));
+const RegisterPage = lazy(() => import('@/pages/RegisterPage/RegisterPage').then((m) => ({ default: m.RegisterPage })));
+const ProfilePage = lazy(() => import('@/pages/ProfilePage/ProfilePage').then((m) => ({ default: m.ProfilePage })));
+const ChatsPage = lazy(() => import('@/pages/ChatsPage/ChatsPage').then((m) => ({ default: m.ChatsPage })));
+const ChatDialogPage = lazy(() => import('@/pages/ChatDialogPage/ChatDialogPage').then((m) => ({ default: m.ChatDialogPage })));
+const FriendsPage = lazy(() => import('@/pages/FriendsPage/FriendsPage').then((m) => ({ default: m.FriendsPage })));
+const MusicPage = lazy(() => import('@/pages/MusicPage/MusicPage').then((m) => ({ default: m.MusicPage })));
+const MoviesPage = lazy(() => import('@/pages/MoviesPage/MoviesPage').then((m) => ({ default: m.MoviesPage })));
+
+const NotFoundPage = () => <div className={styles.notFound}>404 Not Found</div>;
 
 function AuthLayout({ children }: { children: ReactNode }) {
   return <AuthGuard><MusicPlayerProvider>{children}</MusicPlayerProvider></AuthGuard>;
@@ -26,18 +29,20 @@ function AppRoutes() {
   useAuthInit();
 
   return (
-    <Routes>
-      <Route path="/login" element={<GuestGuard><LoginPage /></GuestGuard>} />
-      <Route path="/register" element={<GuestGuard><RegisterPage /></GuestGuard>} />
-      <Route path="/profile/:id" element={<AuthLayout><MoviePlayerProvider><MainLayout><ProfilePage /></MainLayout></MoviePlayerProvider></AuthLayout>} />
-      <Route path="/chats" element={<AuthLayout><ChatsPage /></AuthLayout>} />
-      <Route path="/chats/:dialogId" element={<AuthLayout><ChatDialogPage /></AuthLayout>} />
-      <Route path="/friends" element={<AuthLayout><MainLayout><FriendsPage /></MainLayout></AuthLayout>} />
-      <Route path="/music" element={<AuthLayout><MainLayout><MusicPage /></MainLayout></AuthLayout>} />
-      <Route path="/movies" element={<AuthLayout><MoviePlayerProvider><MainLayout><MoviesPage /></MainLayout></MoviePlayerProvider></AuthLayout>} />
-      <Route path="/" element={<Navigate to="/chats" replace />} />
-      <Route path="*" element={<NotFoundPage />} />
-    </Routes>
+    <Suspense fallback={<div className={styles.loading} />}>
+      <Routes>
+        <Route path="/login" element={<GuestGuard><LoginPage /></GuestGuard>} />
+        <Route path="/register" element={<GuestGuard><RegisterPage /></GuestGuard>} />
+        <Route path="/profile/:id" element={<AuthLayout><MoviePlayerProvider><MainLayout><ProfilePage /></MainLayout></MoviePlayerProvider></AuthLayout>} />
+        <Route path="/chats" element={<AuthLayout><ChatsPage /></AuthLayout>} />
+        <Route path="/chats/:dialogId" element={<AuthLayout><ChatDialogPage /></AuthLayout>} />
+        <Route path="/friends" element={<AuthLayout><MainLayout><FriendsPage /></MainLayout></AuthLayout>} />
+        <Route path="/music" element={<AuthLayout><MainLayout><MusicPage /></MainLayout></AuthLayout>} />
+        <Route path="/movies" element={<AuthLayout><MoviePlayerProvider><MainLayout><MoviesPage /></MainLayout></MoviePlayerProvider></AuthLayout>} />
+        <Route path="/" element={<Navigate to="/chats" replace />} />
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </Suspense>
   );
 }
 
