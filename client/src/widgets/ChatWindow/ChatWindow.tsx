@@ -81,7 +81,7 @@ export function ChatWindow({ dialogId, participantName, participantAvatar }: Cha
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages.length]);
 
-  function emitTyping() {
+  const emitTyping = useCallback(() => {
     const socket = connectSocket();
     socket.emit('typing:start', dialogId);
 
@@ -91,17 +91,17 @@ export function ChatWindow({ dialogId, participantName, participantAvatar }: Cha
     typingTimeoutRef.current = setTimeout(() => {
       socket.emit('typing:stop', dialogId);
     }, 2000);
-  }
+  }, [dialogId]);
 
-  function stopTyping() {
+  const stopTyping = useCallback(() => {
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
       typingTimeoutRef.current = null;
     }
     connectSocket().emit('typing:stop', dialogId);
-  }
+  }, [dialogId]);
 
-  async function handleSend() {
+  const handleSend = useCallback(async () => {
     const content = text.trim();
     if (!content) return;
     stopTyping();
@@ -112,31 +112,31 @@ export function ChatWindow({ dialogId, participantName, participantAvatar }: Cha
     } catch {
       // error handled in hook
     }
-  }
+  }, [text, send, dialogId, addMessage, stopTyping]);
 
-  function handleSubmit(e: FormEvent) {
+  const handleSubmit = useCallback((e: FormEvent) => {
     e.preventDefault();
     handleSend();
-  }
+  }, [handleSend]);
 
-  function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
+  const handleKeyDown = useCallback((e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
-  }
+  }, [handleSend]);
 
-  function handleChange(value: string) {
+  const handleChange = useCallback((value: string) => {
     setText(value);
     emitTyping();
-  }
+  }, [emitTyping]);
 
-  function handleScroll() {
+  const handleScroll = useCallback(() => {
     const el = containerRef.current;
     if (el && el.scrollTop === 0 && hasMore) {
       loadMore();
     }
-  }
+  }, [hasMore, loadMore]);
 
   return (
     <div className={styles.window}>
