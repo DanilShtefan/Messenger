@@ -4,7 +4,7 @@ import http from 'node:http';
 import express from 'express';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
-import { env } from './config/env.js';
+import { env, corsOrigin } from './config/env.js';
 import { errorHandler } from './middleware/errorHandler.middleware.js';
 import { authRoutes } from './routes/auth.routes.js';
 import { userRoutes } from './routes/user.routes.js';
@@ -14,7 +14,7 @@ import { friendRoutes } from './routes/friend.routes.js';
 
 const app = express();
 
-app.use(cors({ origin: env.CLIENT_URL, credentials: true }));
+app.use(cors({ origin: corsOrigin, credentials: true }));
 app.use(express.json({ limit: '1mb' }));
 app.use('/uploads', express.static(path.resolve(import.meta.dirname, '../uploads')));
 
@@ -90,6 +90,14 @@ app.get('/api/movies/video/:identifier', async (req, res) => {
     res.json({ url: `http://archive.org/download/${req.params.identifier}/${req.params.identifier}.mp4` });
   }
 });
+
+if (env.NODE_ENV === 'production') {
+  const clientDist = path.resolve(import.meta.dirname, '../../client/dist');
+  app.use(express.static(clientDist));
+  app.get('*', (_req, res) => {
+    res.sendFile(path.join(clientDist, 'index.html'));
+  });
+}
 
 app.use(errorHandler);
 

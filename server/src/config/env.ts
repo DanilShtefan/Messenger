@@ -9,7 +9,8 @@ const envSchema = z.object({
   JWT_REFRESH_SECRET: z.string().min(16),
   JWT_ACCESS_EXPIRES_IN: z.string().default('15m'),
   JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
-  CLIENT_URL: z.string().url().default('http://localhost:3000'),
+  CLIENT_URL: z.string().default('http://localhost:3000'),
+  CORS_ORIGIN: z.string().default(''),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -20,3 +21,7 @@ if (!parsed.success) {
 }
 
 export const env = parsed.data;
+
+export const corsOrigin = env.NODE_ENV === 'production'
+  ? (env.CORS_ORIGIN || true)
+  : env.CLIENT_URL;

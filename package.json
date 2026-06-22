@@ -10,7 +10,8 @@
     "db:migrate": "npm run prisma:migrate --prefix server",
     "db:seed": "npm run prisma:seed --prefix server",
     "setup": "node scripts/setup.mjs",
-    "start": "npm run dev"
+    "render-build": "npm install --prefix server && npm run build --prefix server && npm prune --prefix server --omit=dev && npm install --prefix client && npm run build --prefix client",
+    "start": "cd server && node dist/index.js"
   },
   "devDependencies": {
     "concurrently": "^9.1.0"

@@ -1,7 +1,7 @@
 import { Server as HttpServer } from 'http';
 import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
-import { env } from '../config/env.js';
+import { env, corsOrigin } from '../config/env.js';
 import type { JwtPayload } from '../middleware/auth.middleware.js';
 
 let io: Server;
@@ -44,7 +44,7 @@ const movieListeningSessions = new Map<string, Set<string>>();
 export function initSocket(httpServer: HttpServer): Server {
   io = new Server(httpServer, {
     cors: {
-      origin: env.CLIENT_URL,
+      origin: corsOrigin,
       credentials: true,
     },
   });
