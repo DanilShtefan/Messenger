@@ -43,8 +43,15 @@ Built with **React + Express + Socket.IO + PostgreSQL**.
 - Browse 28,000+ public domain feature films
 - Search by title with debounced input
 - Grid of poster cards with hover play overlay
-- Embedded IA player for full-length movies
+- Native `<video>` player with direct IA video URLs (no iframe)
 - Shows "Watching" on profile with movie poster
+
+### 🔁 Real-Time Movie Sync
+- **Join a friend's watch session** and see exactly what they see
+- Position, play/pause synced in real time with latency compensation
+- When the host pauses, seeks, or plays — your player follows instantly
+- Leave anytime or close the modal to exit the session
+- Listener count badge in the sidebar
 
 ## Quick start
 
