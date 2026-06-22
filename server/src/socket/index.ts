@@ -26,10 +26,20 @@ export interface SyncData {
   index: number;
 }
 
+export interface MovieSyncData {
+  title: string;
+  identifier: string;
+  position: number;
+  playing: boolean;
+  timestamp: number;
+}
+
 const currentTracks = new Map<string, { title: string; artist: string; cover: string } | null>();
 const currentMovies = new Map<string, { title: string; identifier: string } | null>();
 const currentPlayback = new Map<string, SyncData | null>();
 const listeningSessions = new Map<string, Set<string>>();
+const movieCurrentPlayback = new Map<string, MovieSyncData | null>();
+const movieListeningSessions = new Map<string, Set<string>>();
 
 export function initSocket(httpServer: HttpServer): Server {
   io = new Server(httpServer, {
@@ -74,6 +84,10 @@ export function initSocket(httpServer: HttpServer): Server {
     const existingSession = listeningSessions.get(userId);
     if (existingSession) {
       socket.emit('session:listeners', { hostId: userId, count: existingSession.size });
+    }
+    const existingMovieSession = movieListeningSessions.get(userId);
+    if (existingMovieSession) {
+      socket.emit('movie:listeners', { hostId: userId, count: existingMovieSession.size });
     }
 
     socket.on('join:dialog', (dialogId: string) => {
@@ -143,6 +157,11 @@ export function initSocket(httpServer: HttpServer): Server {
       }
     });
 
+    function emitMovieListenerCount(hostId: string) {
+      const count = movieListeningSessions.get(hostId)?.size ?? 0;
+      io.to(`user:${hostId}`).emit('movie:listeners', { hostId, count });
+    }
+
     socket.on('movie:play', (movie: { title: string; identifier: string }) => {
       currentMovies.set(userId, movie);
       socket.broadcast.emit('friend:movie', { userId, movie });
@@ -153,6 +172,40 @@ export function initSocket(httpServer: HttpServer): Server {
       socket.broadcast.emit('friend:movie', { userId, movie: null });
     });
 
+    socket.on('movie:sync', (data: MovieSyncData) => {
+      movieCurrentPlayback.set(userId, data);
+      const session = movieListeningSessions.get(userId);
+      if (session) {
+        for (const joinerId of session) {
+          io.to(`user:${joinerId}`).emit('movie:sync-state', { hostId: userId, data });
+        }
+      }
+    });
+
+    socket.on('movie:join', (hostId: string) => {
+      if (!movieListeningSessions.has(hostId)) {
+        movieListeningSessions.set(hostId, new Set());
+      }
+      movieListeningSessions.get(hostId)!.add(userId);
+      socket.join(`movie-session:${hostId}`);
+      emitMovieListenerCount(hostId);
+
+      const state = movieCurrentPlayback.get(hostId) ?? null;
+      socket.emit('movie:sync-state', { hostId, data: state });
+    });
+
+    socket.on('movie:leave', () => {
+      for (const [hostId, joiners] of movieListeningSessions) {
+        if (joiners.has(userId)) {
+          joiners.delete(userId);
+          if (joiners.size === 0) movieListeningSessions.delete(hostId);
+          socket.leave(`movie-session:${hostId}`);
+          emitMovieListenerCount(hostId);
+          break;
+        }
+      }
+    });
+
     socket.on('disconnect', () => {
       const sockets = userSockets.get(userId);
       if (sockets) {
@@ -161,7 +214,7 @@ export function initSocket(httpServer: HttpServer): Server {
           userSockets.delete(userId);
           onlineUsers.delete(userId);
           io.emit('user:offline', userId);
-          // Clean up sessions
+          // Clean up music sessions
           for (const [hostId, joiners] of listeningSessions) {
             if (joiners.has(userId) || hostId === userId) {
               if (hostId === userId) {
@@ -169,11 +222,26 @@ export function initSocket(httpServer: HttpServer): Server {
                   io.to(`user:${joinerId}`).emit('music:session-ended', { hostId: userId });
                 }
                 listeningSessions.delete(hostId);
-                io.to(`user:${userId}`).emit('session:listeners', { hostId: userId, count: 0 });
               } else {
                 joiners.delete(userId);
                 if (joiners.size === 0) listeningSessions.delete(hostId);
                 emitListenerCount(hostId);
+              }
+              break;
+            }
+          }
+          // Clean up movie sessions
+          for (const [hostId, joiners] of movieListeningSessions) {
+            if (joiners.has(userId) || hostId === userId) {
+              if (hostId === userId) {
+                for (const joinerId of joiners) {
+                  io.to(`user:${joinerId}`).emit('movie:session-ended', { hostId: userId });
+                }
+                movieListeningSessions.delete(hostId);
+              } else {
+                joiners.delete(userId);
+                if (joiners.size === 0) movieListeningSessions.delete(hostId);
+                emitMovieListenerCount(hostId);
               }
               break;
             }
@@ -201,4 +269,8 @@ export function getUserCurrentTrack(userId: string) {
 
 export function getUserCurrentMovie(userId: string) {
   return currentMovies.get(userId) ?? null;
+}
+
+export function getUserCurrentMoviePlayback(userId: string) {
+  return movieCurrentPlayback.get(userId) ?? null;
 }

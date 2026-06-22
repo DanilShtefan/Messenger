@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ErrorBoundary } from '@/app/providers/ErrorBoundary';
 import { MusicPlayerProvider } from '@/shared/lib/MusicPlayerContext';
+import { MoviePlayerProvider } from '@/shared/lib/MoviePlayerContext';
 import { AuthGuard } from '@/features/auth/AuthGuard';
 import { GuestGuard } from '@/features/auth/GuestGuard';
 import { useAuthInit } from '@/shared/hooks/useAuthInit';
@@ -40,7 +41,9 @@ export function App() {
     <ErrorBoundary>
       <BrowserRouter>
         <MusicPlayerProvider>
-          <AppRoutes />
+          <MoviePlayerProvider>
+            <AppRoutes />
+          </MoviePlayerProvider>
         </MusicPlayerProvider>
       </BrowserRouter>
     </ErrorBoundary>

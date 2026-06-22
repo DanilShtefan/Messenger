@@ -1,40 +1,51 @@
-import { useEffect, useState, useCallback } from 'react';
-import { Search, X, Play, Star } from 'lucide-react';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { Search, X, Play, Star, Loader } from 'lucide-react';
 import { moviesApi, type IaMovie } from '@/shared/api/movies.api';
 import { Skeleton } from '@/shared/ui';
-import { connectSocket } from '@/shared/lib/socket';
+import { useMoviePlayer } from '@/shared/lib/MoviePlayerContext';
 import styles from './MoviesPage.module.css';
 
 export function MoviesPage() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<IaMovie[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selected, setSelected] = useState<IaMovie | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [urlLoading, setUrlLoading] = useState(false);
+  const player = useMoviePlayer();
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
     setLoading(true);
     moviesApi.search(query.trim()).then(setResults).finally(() => setLoading(false));
   }, [query]);
 
+  // Resolve video URL when currentMovie changes
   useEffect(() => {
-    const socket = connectSocket();
-    if (selected) {
-      socket.emit('movie:play', { title: selected.title, identifier: selected.identifier });
-    } else {
-      socket.emit('movie:stop');
+    if (!player.currentMovie) {
+      setVideoUrl(null);
+      return;
     }
-  }, [selected]);
-
-  useEffect(() => {
-    return () => {
-      const socket = connectSocket();
-      socket.emit('movie:stop');
-    };
-  }, []);
+    setUrlLoading(true);
+    setVideoUrl(null);
+    moviesApi.getVideoUrl(player.currentMovie.identifier).then((url) => {
+      setVideoUrl(url);
+      setUrlLoading(false);
+    });
+  }, [player.currentMovie]);
 
   const openPlayer = useCallback((movie: IaMovie) => {
-    setSelected(movie);
-  }, []);
+    player.playMovie(movie);
+  }, [player]);
+
+  const handleClose = useCallback(() => {
+    player.stopMovie();
+  }, [player]);
+
+  const handleSeeked = useCallback(() => {
+    if (videoRef.current && !player.hostId) {
+      player.seek(videoRef.current.currentTime);
+    }
+  }, [player]);
 
   return (
     <div className={styles.page}>
@@ -105,21 +116,39 @@ export function MoviesPage() {
         ))}
       </div>
 
-      {selected && (
-        <div className={styles.overlay} onClick={() => setSelected(null)}>
+      {player.currentMovie && (
+        <div className={styles.overlay} onClick={handleClose}>
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h3 className={styles.modalTitle}>{selected.title}</h3>
-              <button className={styles.modalClose} onClick={() => setSelected(null)}><X size={20} /></button>
+              <h3 className={styles.modalTitle}>{player.currentMovie.title}</h3>
+              <button className={styles.modalClose} onClick={handleClose}><X size={20} /></button>
             </div>
-            <iframe
-              className={styles.player}
-              src={moviesApi.getEmbedUrl(selected.identifier)}
-              allow="fullscreen"
-              title={selected.title}
-            />
-            {selected.description && (
-              <p className={styles.description}>{selected.description}</p>
+            {urlLoading ? (
+              <div className={styles.player}>
+                <div className={styles.loaderWrap}>
+                  <Loader size={32} className={styles.spinner} />
+                </div>
+              </div>
+            ) : videoUrl ? (
+              <video
+                ref={(el) => {
+                  videoRef.current = el;
+                  player.attachVideo(el);
+                }}
+                className={styles.player}
+                src={videoUrl}
+                controls
+                onPlay={player.onPlay}
+                onPause={player.onPause}
+                onTimeUpdate={(e) => player.onTimeUpdate(e.currentTarget.currentTime)}
+                onDurationChange={(e) => player.onDurationChange(e.currentTarget.duration)}
+                onSeeked={handleSeeked}
+                onError={() => setVideoUrl(null)}
+              />
+            ) : (
+              <div className={styles.player}>
+                <div className={styles.loaderWrap}>Failed to load video</div>
+              </div>
             )}
           </div>
         </div>

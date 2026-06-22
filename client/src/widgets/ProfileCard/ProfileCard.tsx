@@ -10,6 +10,7 @@ import { friendsApi } from '@/shared/api/friends.api';
 import { chatsApi } from '@/shared/api/chats.api';
 import { cn } from '@/shared/lib/helpers';
 import { useMusicPlayer } from '@/shared/lib/MusicPlayerContext';
+import { useMoviePlayer } from '@/shared/lib/MoviePlayerContext';
 import { Avatar, Button, Input, Skeleton } from '@/shared/ui';
 import type { User, UserProfile } from '@/shared/types';
 import styles from './ProfileCard.module.css';
@@ -27,6 +28,7 @@ export function ProfileCard({ userId }: ProfileCardProps) {
   const [sent, setSent] = useState<User[]>([]);
   const [sending, setSending] = useState(false);
   const player = useMusicPlayer();
+  const moviePlayer = useMoviePlayer();
 
   const fetchState = useCallback(async () => {
     const [friendsData, sentData] = await Promise.all([
@@ -233,6 +235,22 @@ export function ProfileCard({ userId }: ProfileCardProps) {
                 <span className={styles.movieLabel}>Watching</span>
                 <span className={styles.movieTitle}>{profile.currentMovie.title}</span>
               </div>
+              {!isOwn && moviePlayer.hostId !== userId && (
+                <button
+                  className={styles.joinBtn}
+                  onClick={() => {
+                    moviePlayer.joinSession(userId);
+                    navigate('/movies');
+                  }}
+                >
+                  Join
+                </button>
+              )}
+              {moviePlayer.hostId === userId && (
+                <button className={styles.joinBtn} onClick={moviePlayer.leaveSession}>
+                  Leave
+                </button>
+              )}
             </div>
           )}
 

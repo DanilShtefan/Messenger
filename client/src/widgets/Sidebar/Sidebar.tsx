@@ -20,6 +20,7 @@ export function Sidebar() {
     friendsApi.getIncoming().then((r) => setIncomingCount(r.length)).catch(() => {});
   }, []);
   const [listenerCount, setListenerCount] = useState(0);
+  const [movieListenerCount, setMovieListenerCount] = useState(0);
 
   useEffect(() => { fetchCount(); }, [fetchCount]);
 
@@ -34,11 +35,16 @@ export function Sidebar() {
       if (user && p.hostId === user.id) setListenerCount(p.count);
     });
 
+    socket.on('movie:listeners', (p: { hostId: string; count: number }) => {
+      if (user && p.hostId === user.id) setMovieListenerCount(p.count);
+    });
+
     return () => {
       socket.off('friend:request', fetchCount);
       socket.off('friend:accept', fetchCount);
       socket.off('friend:reject', fetchCount);
       socket.off('session:listeners');
+      socket.off('movie:listeners');
     };
   }, [fetchCount, user]);
 
@@ -99,6 +105,7 @@ export function Sidebar() {
           >
             <Film size={20} className={styles.navIcon} />
             <span className={styles.navLabel}>Movies</span>
+            {movieListenerCount > 0 && <span className={styles.navBadge}>{movieListenerCount}</span>}
           </button>
         </div>
       </div>
