@@ -8,16 +8,11 @@ export interface IaMovie {
 
 async function fetchVideoUrl(identifier: string): Promise<string | null> {
   try {
-    const res = await fetch(`https://archive.org/metadata/${identifier}`);
+    const res = await fetch(`/api/movies/video/${identifier}`);
     const data = await res.json();
-    const file = data.files?.find(
-      (f: any) => f.source === 'original' && (f.format === 'MPEG4' || f.format === 'h.264'),
-    );
-    if (file) return `https://archive.org/download/${identifier}/${file.name}`;
-    // fallback: try identifier.mp4
-    return `https://archive.org/download/${identifier}/${identifier}.mp4`;
+    return data.url ?? null;
   } catch {
-    return `https://archive.org/download/${identifier}/${identifier}.mp4`;
+    return null;
   }
 }
 

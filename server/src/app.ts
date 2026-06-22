@@ -1,5 +1,6 @@
 import path from 'node:path';
 import https from 'node:https';
+import http from 'node:http';
 import express from 'express';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
@@ -49,19 +50,24 @@ app.use('/api/chats', chatRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/friends', friendRoutes);
 
-function fetchIaMovies(query: string, sort: string, rows: number): Promise<any[]> {
+function fetchJson(url: string): Promise<any> {
+  const mod = url.startsWith('https') ? https : http;
   return new Promise((resolve, reject) => {
-    const q = query ? `AND+title:(${encodeURIComponent(query)})` : '';
-    const url = `https://archive.org/advancedsearch.php?q=collection:feature_films+AND+mediatype:movies${q}&fl[]=identifier,title,description,avg_rating,downloads&sort[]=${sort.replace(/\+/g, '%20')}&rows=${rows}&output=json`;
-    https.get(url, (iaRes) => {
+    mod.get(url, (res) => {
       let body = '';
-      iaRes.on('data', (chunk) => (body += chunk));
-      iaRes.on('end', () => {
-        try { resolve(JSON.parse(body).response?.docs ?? []); }
+      res.on('data', (chunk) => (body += chunk));
+      res.on('end', () => {
+        try { resolve(JSON.parse(body)); }
         catch { reject(new Error('Failed to parse')); }
       });
     }).on('error', reject);
   });
+}
+
+function fetchIaMovies(query: string, sort: string, rows: number): Promise<any[]> {
+  const q = query ? `AND+title:(${encodeURIComponent(query)})` : '';
+  const url = `http://archive.org/advancedsearch.php?q=collection:feature_films+AND+mediatype:movies${q}&fl[]=identifier,title,description,avg_rating,downloads&sort[]=${sort.replace(/\+/g, '%20')}&rows=${rows}&output=json`;
+  return fetchJson(url).then((d) => d.response?.docs ?? []);
 }
 
 app.get('/api/movies/search', async (req, res) => {
@@ -70,6 +76,23 @@ app.get('/api/movies/search', async (req, res) => {
     const results = await fetchIaMovies(q || '', 'downloads+desc', 20);
     res.json({ results });
   } catch { res.status(502).json({ message: 'Failed to fetch from IA' }); }
+});
+
+app.get('/api/movies/video/:identifier', async (req, res) => {
+  try {
+    const data = await fetchJson(`http://archive.org/metadata/${req.params.identifier}`);
+    const file = data.files?.find(
+      (f: any) => f.source === 'original' && (f.format === 'MPEG4' || f.format === 'h.264'),
+    );
+    if (file) {
+      res.json({ url: `http://archive.org/download/${req.params.identifier}/${file.name}` });
+    } else {
+      res.json({ url: `http://archive.org/download/${req.params.identifier}/${req.params.identifier}.mp4` });
+    }
+  } catch {
+    // fallback: just try the default name
+    res.json({ url: `http://archive.org/download/${req.params.identifier}/${req.params.identifier}.mp4` });
+  }
 });
 
 app.use(errorHandler);
