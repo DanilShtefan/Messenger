@@ -1,0 +1,10 @@
+.layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.chatList {
+  flex: 1;
+  overflow-y: auto;
+}

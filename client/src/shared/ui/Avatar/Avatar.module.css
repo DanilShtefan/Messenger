@@ -1,0 +1,21 @@
+.avatar {
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-accent);
+  color: var(--color-on-accent);
+  font-weight: 600;
+  font-size: 0.875rem;
+  user-select: none;
+}
+
+.sm { width: 2rem; height: 2rem; font-size: 0.75rem; }
+.md { width: 2.5rem; height: 2.5rem; font-size: 0.875rem; }
+.lg { width: 3rem; height: 3rem; font-size: 1rem; }
+.xl { width: 5rem; height: 5rem; font-size: 1.5rem; }

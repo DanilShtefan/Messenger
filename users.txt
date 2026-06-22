@@ -1,0 +1,10 @@
+Users in database:
+
+Email                 | Password      | Display Name
+----------------------|---------------|-------------
+alice@test.com        | password123   | Alice Johnson
+bob@test.com          | password123   | Bob Smith
+test@test.com         | ?             | Test
+e2e@test.com          | ?             | E2E
+e2e2@test.com         | ?             | E2E2
+danilshtefan.66@gmail.com | ?         | Danil
