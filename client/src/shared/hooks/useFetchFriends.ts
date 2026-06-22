@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { connectSocket } from '@/shared/lib/socket';
 import { friendsApi } from '@/shared/api/friends.api';
 import type { User } from '@/shared/types';
@@ -17,45 +18,37 @@ interface UseFetchFriendsReturn {
   refetch: () => Promise<void>;
 }
 
-export function useFetchFriends(): UseFetchFriendsReturn {
-  const [friends, setFriends] = useState<User[]>([]);
-  const [incoming, setIncoming] = useState<User[]>([]);
-  const [sent, setSent] = useState<User[]>([]);
-  const [suggested, setSuggested] = useState<User[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+const FRIENDS_KEY = ['friends'] as const;
 
-  const fetchAll = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
+export function useFetchFriends(): UseFetchFriendsReturn {
+  const queryClient = useQueryClient();
+
+  const { data, isLoading, error: queryError, refetch } = useQuery({
+    queryKey: FRIENDS_KEY,
+    queryFn: async () => {
       const [friendsData, incomingData, sentData, suggestedData] = await Promise.all([
         friendsApi.getAll(),
         friendsApi.getIncoming(),
         friendsApi.getSent(),
         friendsApi.getSuggested(),
       ]);
-      setFriends(friendsData);
-      setIncoming(incomingData);
-      setSent(sentData);
-      setSuggested(suggestedData);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to load friends';
-      setError(message);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+      return { friends: friendsData, incoming: incomingData, sent: sentData, suggested: suggestedData };
+    },
+    staleTime: 30_000,
+  });
 
-  useEffect(() => {
-    fetchAll();
-  }, [fetchAll]);
+  const friends = data?.friends ?? [];
+  const incoming = data?.incoming ?? [];
+  const sent = data?.sent ?? [];
+  const suggested = data?.suggested ?? [];
+
+  const refetchAll = useCallback(() => refetch().then(() => {}), [refetch]);
 
   useEffect(() => {
     const socket = connectSocket();
 
     function handleFriendEvent() {
-      fetchAll();
+      queryClient.invalidateQueries({ queryKey: FRIENDS_KEY });
     }
 
     socket.on('friend:request', handleFriendEvent);
@@ -67,31 +60,29 @@ export function useFetchFriends(): UseFetchFriendsReturn {
       socket.off('friend:accept', handleFriendEvent);
       socket.off('friend:reject', handleFriendEvent);
     };
-  }, [fetchAll]);
+  }, [queryClient]);
 
   const sendRequest = useCallback(async (userId: string) => {
-    const result = await friendsApi.add(userId);
-    if (!result.autoAccepted) {
-      // Optimistically add to incoming so UI shows "Request sent"
-      setSuggested((prev) => prev.filter((u) => u.id !== userId));
-    }
-    await fetchAll();
-  }, [fetchAll]);
+    await friendsApi.add(userId);
+    await queryClient.invalidateQueries({ queryKey: FRIENDS_KEY });
+  }, [queryClient]);
 
   const acceptRequest = useCallback(async (userId: string) => {
     await friendsApi.accept(userId);
-    await fetchAll();
-  }, [fetchAll]);
+    await queryClient.invalidateQueries({ queryKey: FRIENDS_KEY });
+  }, [queryClient]);
 
   const rejectRequest = useCallback(async (userId: string) => {
     await friendsApi.reject(userId);
-    await fetchAll();
-  }, [fetchAll]);
+    await queryClient.invalidateQueries({ queryKey: FRIENDS_KEY });
+  }, [queryClient]);
 
   const removeFriend = useCallback(async (userId: string) => {
     await friendsApi.remove(userId);
-    await fetchAll();
-  }, [fetchAll]);
+    await queryClient.invalidateQueries({ queryKey: FRIENDS_KEY });
+  }, [queryClient]);
 
-  return { friends, incoming, sent, suggested, isLoading, error, sendRequest, acceptRequest, rejectRequest, removeFriend, refetch: fetchAll };
+  const error = queryError instanceof Error ? queryError.message : queryError ? 'Failed to load friends' : null;
+
+  return { friends, incoming, sent, suggested, isLoading, error, sendRequest, acceptRequest, rejectRequest, removeFriend, refetch: refetchAll };
 }

@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { chatsApi } from '@/shared/api/chats.api';
 import type { DialogListItem } from '@/shared/types';
 
@@ -12,10 +13,16 @@ interface UseFetchChatsReturn {
   incrementUnread: (dialogId: string) => void;
 }
 
+const CHATS_KEY = ['chats'] as const;
+
 export function useFetchChats(): UseFetchChatsReturn {
-  const [chats, setChats] = useState<DialogListItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+
+  const { data: chats = [], isLoading, error: queryError, refetch } = useQuery({
+    queryKey: CHATS_KEY,
+    queryFn: () => chatsApi.getAll(),
+    staleTime: 30_000,
+  });
 
   const totalUnread = chats.reduce((sum, c) => sum + c.unreadCount, 0);
 
@@ -23,56 +30,32 @@ export function useFetchChats(): UseFetchChatsReturn {
     document.title = totalUnread > 0 ? `Messenger (${totalUnread})` : 'Messenger';
   }, [totalUnread]);
 
-  const fetchChats = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await chatsApi.getAll();
-      setChats(data);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to load chats';
-      setError(message);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchChats();
-  }, [fetchChats]);
+  const updateChat = useCallback((dialogId: string, updater: (chat: DialogListItem) => DialogListItem) => {
+    queryClient.setQueryData<DialogListItem[]>(CHATS_KEY, (prev) =>
+      prev ? prev.map((chat) => (chat.id === dialogId ? updater(chat) : chat)) : prev,
+    );
+  }, [queryClient]);
 
   const updateChatLastMessage = useCallback(
     (dialogId: string, content: string, createdAt: string) => {
-      setChats((prev) =>
-        prev.map((chat) =>
-          chat.id === dialogId
-            ? {
-                ...chat,
-                lastMessage: { id: '', content, senderId: '', dialogId, createdAt, updatedAt: createdAt, readAt: null },
-                updatedAt: createdAt,
-              }
-            : chat,
-        ),
-      );
+      updateChat(dialogId, (chat) => ({
+        ...chat,
+        lastMessage: { id: '', content, senderId: '', dialogId, createdAt, updatedAt: createdAt, readAt: null },
+        updatedAt: createdAt,
+      }));
     },
-    [],
+    [updateChat],
   );
 
   const resetUnreadCount = useCallback((dialogId: string) => {
-    setChats((prev) =>
-      prev.map((chat) =>
-        chat.id === dialogId ? { ...chat, unreadCount: 0 } : chat,
-      ),
-    );
-  }, []);
+    updateChat(dialogId, (chat) => ({ ...chat, unreadCount: 0 }));
+  }, [updateChat]);
 
   const incrementUnread = useCallback((dialogId: string) => {
-    setChats((prev) =>
-      prev.map((chat) =>
-        chat.id === dialogId ? { ...chat, unreadCount: chat.unreadCount + 1 } : chat,
-      ),
-    );
-  }, []);
+    updateChat(dialogId, (chat) => ({ ...chat, unreadCount: chat.unreadCount + 1 }));
+  }, [updateChat]);
 
-  return { chats, isLoading, error, refetch: fetchChats, updateChatLastMessage, resetUnreadCount, incrementUnread };
+  const error = queryError instanceof Error ? queryError.message : queryError ? 'Failed to load chats' : null;
+
+  return { chats, isLoading, error, refetch: () => refetch().then(() => {}), updateChatLastMessage, resetUnreadCount, incrementUnread };
 }

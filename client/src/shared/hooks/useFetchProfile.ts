@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { profileApi } from '@/shared/api/profile.api';
 import type { UserProfile } from '@/shared/types';
 
@@ -11,27 +12,20 @@ interface UseFetchProfileReturn {
 }
 
 export function useFetchProfile(userId: string): UseFetchProfileReturn {
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const profileKey = ['profile', userId] as const;
 
-  const fetchProfile = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await profileApi.getById(userId);
-      setProfile(data);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to load profile';
-      setError(message);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [userId]);
+  const { data: profile = null, isLoading, error: queryError, refetch } = useQuery({
+    queryKey: profileKey,
+    queryFn: () => profileApi.getById(userId),
+    staleTime: 30_000,
+  });
 
-  useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile]);
+  const setProfile = useCallback((newProfile: UserProfile | null) => {
+    queryClient.setQueryData(profileKey, newProfile);
+  }, [queryClient, profileKey]);
 
-  return { profile, isLoading, error, refetch: fetchProfile, setProfile };
+  const error = queryError instanceof Error ? queryError.message : queryError ? 'Failed to load profile' : null;
+
+  return { profile, isLoading, error, refetch: () => refetch().then(() => {}), setProfile };
 }
