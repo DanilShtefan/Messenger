@@ -21,6 +21,8 @@ app.use(cors({ origin: corsOrigin, credentials: true }));
 app.use(express.json({ limit: '1mb' }));
 app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
 
+app.get('/healthz', (_req, res) => res.send('ok'));
+
 app.get('/api/music/chart', (_req, res) => {
   https.get('https://api.deezer.com/chart/0/tracks?limit=50', (deezerRes) => {
     let body = '';
