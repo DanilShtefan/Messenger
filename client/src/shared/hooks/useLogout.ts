@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { useAppDispatch } from '@/app/hooks';
 import { authApi } from '@/shared/api/auth.api';
 import { logout } from '@/entities/user/user.slice';
+import { disconnectSocket } from '@/shared/lib/socket';
 
 export function useLogout() {
   const dispatch = useAppDispatch();
@@ -17,6 +18,7 @@ export function useLogout() {
     } finally {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
+      disconnectSocket();
       dispatch(logout());
     }
   }, [dispatch]);
