@@ -21,6 +21,7 @@ interface MoviePlayerValue {
   onPause: () => void;
   onTimeUpdate: (time: number) => void;
   onDurationChange: (dur: number) => void;
+  onSeeked: (time: number) => void;
   joinSession: (hostId: string) => void;
   leaveSession: () => void;
 }
@@ -158,6 +159,8 @@ export function MoviePlayerProvider({ children }: { children: ReactNode }) {
     setCurrentMovie(movie);
     setPlaying(true);
     setPosition(0);
+    playingRef.current = true;
+    movieRef.current = movie;
     controlVideo(0, true);
     emitPlay(movie);
     emitSync(0);
@@ -167,6 +170,8 @@ export function MoviePlayerProvider({ children }: { children: ReactNode }) {
     const wasHost = !hostRef.current;
     setCurrentMovie(null);
     setPlaying(false);
+    playingRef.current = false;
+    movieRef.current = null;
     setPosition(0);
     if (wasHost) {
       emitStop();
@@ -223,6 +228,13 @@ export function MoviePlayerProvider({ children }: { children: ReactNode }) {
     setDuration(dur);
   }
 
+  function onSeeked(time: number) {
+    if (hostRef.current) return;
+    setPosition(time);
+    positionRef.current = time;
+    emitSync(time);
+  }
+
   function joinSession(id: string) {
     setHostId(id);
     hostRef.current = id;
@@ -252,6 +264,7 @@ export function MoviePlayerProvider({ children }: { children: ReactNode }) {
         onPause,
         onTimeUpdate,
         onDurationChange,
+        onSeeked,
         joinSession,
         leaveSession,
       }}

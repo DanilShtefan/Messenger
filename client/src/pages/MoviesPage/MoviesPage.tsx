@@ -41,12 +41,6 @@ export function MoviesPage() {
     player.stopMovie();
   }, [player]);
 
-  const handleSeeked = useCallback(() => {
-    if (videoRef.current && !player.hostId) {
-      player.seek(videoRef.current.currentTime);
-    }
-  }, [player]);
-
   return (
     <div className={styles.page}>
       <div className={styles.header}>
@@ -142,7 +136,7 @@ export function MoviesPage() {
                 onPause={player.onPause}
                 onTimeUpdate={(e) => player.onTimeUpdate(e.currentTarget.currentTime)}
                 onDurationChange={(e) => player.onDurationChange(e.currentTarget.duration)}
-                onSeeked={handleSeeked}
+                onSeeked={(e) => player.onSeeked(e.currentTarget.currentTime)}
                 onError={() => setVideoUrl(null)}
               />
             ) : (
