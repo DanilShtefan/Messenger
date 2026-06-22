@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import type { ReactNode } from 'react';
 import { ErrorBoundary } from '@/app/providers/ErrorBoundary';
 import { MusicPlayerProvider } from '@/shared/lib/MusicPlayerContext';
 import { MoviePlayerProvider } from '@/shared/lib/MoviePlayerContext';
@@ -17,6 +18,10 @@ import { MainLayout } from '@/widgets/MainLayout/MainLayout';
 
 const NotFoundPage = () => <div>404 Not Found</div>;
 
+function AuthLayout({ children }: { children: ReactNode }) {
+  return <AuthGuard><MusicPlayerProvider>{children}</MusicPlayerProvider></AuthGuard>;
+}
+
 function AppRoutes() {
   useAuthInit();
 
@@ -24,12 +29,12 @@ function AppRoutes() {
     <Routes>
       <Route path="/login" element={<GuestGuard><LoginPage /></GuestGuard>} />
       <Route path="/register" element={<GuestGuard><RegisterPage /></GuestGuard>} />
-      <Route path="/profile/:id" element={<AuthGuard><MainLayout><ProfilePage /></MainLayout></AuthGuard>} />
-      <Route path="/chats" element={<AuthGuard><ChatsPage /></AuthGuard>} />
-      <Route path="/chats/:dialogId" element={<AuthGuard><ChatDialogPage /></AuthGuard>} />
-      <Route path="/friends" element={<AuthGuard><MainLayout><FriendsPage /></MainLayout></AuthGuard>} />
-      <Route path="/music" element={<AuthGuard><MainLayout><MusicPage /></MainLayout></AuthGuard>} />
-      <Route path="/movies" element={<AuthGuard><MainLayout><MoviesPage /></MainLayout></AuthGuard>} />
+      <Route path="/profile/:id" element={<AuthLayout><MoviePlayerProvider><MainLayout><ProfilePage /></MainLayout></MoviePlayerProvider></AuthLayout>} />
+      <Route path="/chats" element={<AuthLayout><ChatsPage /></AuthLayout>} />
+      <Route path="/chats/:dialogId" element={<AuthLayout><ChatDialogPage /></AuthLayout>} />
+      <Route path="/friends" element={<AuthLayout><MainLayout><FriendsPage /></MainLayout></AuthLayout>} />
+      <Route path="/music" element={<AuthLayout><MainLayout><MusicPage /></MainLayout></AuthLayout>} />
+      <Route path="/movies" element={<AuthLayout><MoviePlayerProvider><MainLayout><MoviesPage /></MainLayout></MoviePlayerProvider></AuthLayout>} />
       <Route path="/" element={<Navigate to="/chats" replace />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
@@ -40,11 +45,7 @@ export function App() {
   return (
     <ErrorBoundary>
       <BrowserRouter>
-        <MusicPlayerProvider>
-          <MoviePlayerProvider>
-            <AppRoutes />
-          </MoviePlayerProvider>
-        </MusicPlayerProvider>
+        <AppRoutes />
       </BrowserRouter>
     </ErrorBoundary>
   );
