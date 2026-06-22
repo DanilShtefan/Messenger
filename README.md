@@ -70,3 +70,46 @@ npm run dev
 ```
 
 Open http://localhost:3000
+
+## Deploy to Render
+
+This project is optimized for deployment on [Render](https://render.com), including the free tier. Render instances automatically sleep when idle and wake up when there's traffic, which can cause database connections to disconnect and reconnect.
+
+### Key Features for Render Deployment:
+
+- **Automatic migrations**: Runs `npx prisma migrate deploy` on startup to apply all pending migrations
+- **Database connection retries**: Automatically retries database connections up to 5 times with exponential backoff
+- **Resilient initialization**: Ensures database is ready before starting the HTTP server
+- **Graceful shutdown**: Properly disconnects database connections on SIGTERM/SIGINT signals
+
+### Render Setup:
+
+1. **Connect PostgreSQL database** to Render:
+   - Create a PostgreSQL database on Render or use an existing one
+   - Note the connection string (DATABASE_URL)
+
+2. **Set environment variables in Render Dashboard**:
+   ```bash
+   NODE_ENV=production
+   PORT=10000
+   DATABASE_URL="your-database-url"
+   JWT_ACCESS_SECRET="your-access-secret"
+   JWT_REFRESH_SECRET="your-refresh-secret"
+   CLIENT_URL="https://your-client-domain.com"
+   ```
+
+3. **Render configuration**:
+   - **Build Command**: `npx prisma generate && npx tsc`
+   - **Start Command**: `node dist/index.js`
+   - **Instance Type**: Standard (Free tier supports 15 minutes sleep time)
+
+4. **Database persistence**:
+   - Render PostgreSQL databases persist data between restarts
+   - Your data will be preserved across Render sleep/wake cycles
+
+### Notes:
+
+- The free tier uses shared VMs that sleep after 15 minutes of inactivity
+- After sleep/wake cycles, the application will automatically reconnect to the database
+- Migration scripts run each time the server starts to ensure the schema is up-to-date
+- Database seeding only runs if the database is completely empty (useful for fresh deployments)
