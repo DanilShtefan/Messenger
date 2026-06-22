@@ -10,46 +10,56 @@ export function FriendsPage() {
   return (
     <main className={styles.page}>
       {isLoading && (
-        <div className={styles.list}>
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className={styles.card}>
-              <Skeleton width={48} height={48} borderRadius="50%" />
-              <div className={styles.cardInfo}>
-                <Skeleton width="40%" height={16} />
-                <Skeleton width="60%" height={12} />
-              </div>
+        <>
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Friends</h2>
+            <div className={styles.list}>
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className={styles.card}>
+                  <Skeleton width={48} height={48} borderRadius="50%" />
+                  <div className={styles.cardInfo}>
+                    <Skeleton width="40%" height={16} />
+                    <Skeleton width="60%" height={12} />
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
+
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Friend requests</h2>
+            <div className={styles.list}>
+              {Array.from({ length: 2 }).map((_, i) => (
+                <div key={i} className={styles.card}>
+                  <Skeleton width={48} height={48} borderRadius="50%" />
+                  <div className={styles.cardInfo}>
+                    <Skeleton width="40%" height={16} />
+                    <Skeleton width="60%" height={12} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>People you may know</h2>
+            <div className={styles.list}>
+              {Array.from({ length: 2 }).map((_, i) => (
+                <div key={i} className={styles.card}>
+                  <Skeleton width={48} height={48} borderRadius="50%" />
+                  <div className={styles.cardInfo}>
+                    <Skeleton width="40%" height={16} />
+                    <Skeleton width="60%" height={12} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
       )}
 
       {!isLoading && (
         <>
-          {incoming.length > 0 && (
-            <div className={styles.section}>
-              <h2 className={styles.sectionTitle}>Friend requests</h2>
-              <div className={styles.list}>
-                {incoming.map((u) => (
-                  <div key={u.id} className={styles.card} onClick={() => navigate(`/profile/${u.id}`)}>
-                    <Avatar src={u.avatarUrl} name={u.displayName} size="lg" />
-                    <div className={styles.cardInfo}>
-                      <span className={styles.cardName}>{u.displayName}</span>
-                      <span className={styles.cardStatus}>Wants to be your friend</span>
-                    </div>
-                    <div className={styles.cardActions}>
-                      <Button size="sm" onClick={(e) => { e.stopPropagation(); acceptRequest(u.id); }}>
-                        Accept
-                      </Button>
-                      <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); rejectRequest(u.id); }}>
-                        Reject
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           <div className={styles.section}>
             <h2 className={styles.sectionTitle}>Friends</h2>
             {friends.length === 0 ? (
@@ -75,6 +85,31 @@ export function FriendsPage() {
               </div>
             )}
           </div>
+
+          {incoming.length > 0 && (
+            <div className={styles.section}>
+              <h2 className={styles.sectionTitle}>Friend requests</h2>
+              <div className={styles.list}>
+                {incoming.map((u) => (
+                  <div key={u.id} className={styles.card} onClick={() => navigate(`/profile/${u.id}`)}>
+                    <Avatar src={u.avatarUrl} name={u.displayName} size="lg" />
+                    <div className={styles.cardInfo}>
+                      <span className={styles.cardName}>{u.displayName}</span>
+                      <span className={styles.cardStatus}>Wants to be your friend</span>
+                    </div>
+                    <div className={styles.cardActions}>
+                      <Button size="sm" onClick={(e) => { e.stopPropagation(); acceptRequest(u.id); }}>
+                        Accept
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); rejectRequest(u.id); }}>
+                        Reject
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {suggested.length > 0 && (
             <div className={styles.section}>
