@@ -16,23 +16,27 @@ export function ChatDialogPage() {
     [chats, dialogId],
   );
 
-  const participant = dialog?.participant;
-  const isMe = participant?.id === currentUserId;
-  const participantName = isMe
-    ? 'Saved Messages'
-    : participant?.displayName ?? 'Unknown';
-  const participantAvatar = participant?.avatarUrl ?? null;
+  if (!dialogId || !dialog) {
+    return (
+      <div className={styles.layout}>
+        <Sidebar />
+      </div>
+    );
+  }
+
+  const participant = dialog.participant;
+  const isMe = participant.id === currentUserId;
+  const participantName = isMe ? 'Saved Messages' : participant.displayName;
+  const participantAvatar = participant.avatarUrl ?? null;
 
   return (
     <div className={styles.layout}>
       <Sidebar />
-      {dialogId && (
-        <ChatWindow
-          dialogId={dialogId}
-          participantName={participantName}
-          participantAvatar={participantAvatar}
-        />
-      )}
+      <ChatWindow
+        dialogId={dialogId}
+        participantName={participantName}
+        participantAvatar={participantAvatar}
+      />
     </div>
   );
 }
