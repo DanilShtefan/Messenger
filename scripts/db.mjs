@@ -1,8 +1,9 @@
 import { execSync } from 'child_process';
-import { existsSync } from 'fs';
+import { existsSync, mkdirSync } from 'fs';
 import { resolve } from 'path';
+import os from 'os';
 
-const PGDATA = '/tmp/pgdata';
+const PGDATA = resolve(os.homedir(), '.local/share/messenger/pgdata');
 const PG_BIN = '/usr/lib/postgresql/18/bin';
 
 function run(cmd, opts = {}) {
@@ -29,8 +30,11 @@ function start() {
     return;
   }
 
-  if (!existsSync(PGDATA)) {
+  const isFresh = !existsSync(PGDATA);
+
+  if (isFresh) {
     console.log('Initializing PostgreSQL...');
+    mkdirSync(PGDATA, { recursive: true, mode: 0o700 });
     run(`${PG_BIN}/initdb -D ${PGDATA}`);
     run(`echo "port = 5433" >> ${PGDATA}/postgresql.conf`);
     run(`echo "listen_addresses = 'localhost'" >> ${PGDATA}/postgresql.conf`);
@@ -42,10 +46,14 @@ function start() {
 
   run(`${PG_BIN}/psql -h /tmp -p 5433 -d postgres -c "SELECT 1"`, { ignoreError: true });
 
-  try {
-    run(`${PG_BIN}/createdb -h /tmp -p 5433 messenger`, { ignoreError: true });
-  } catch {
-    // already exists
+  run(`${PG_BIN}/createdb -h /tmp -p 5433 messenger`, { ignoreError: true });
+
+  if (isFresh) {
+    console.log('\n--- Running migrations ---');
+    run('npx prisma migrate dev', { cwd: resolve('server') });
+
+    console.log('\n--- Seeding database ---');
+    run('npx tsx prisma/seed.ts', { cwd: resolve('server') });
   }
 }
 

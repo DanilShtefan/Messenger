@@ -1,10 +1,49 @@
-Users in database:
+Admin:
+  Email:    admin@admin.admin
+  Password: 123456
+  Name:     Admin
 
-Email                 | Password      | Display Name
-----------------------|---------------|-------------
-alice@test.com        | password123   | Alice Johnson
-bob@test.com          | password123   | Bob Smith
-test@test.com         | ?             | Test
-e2e@test.com          | ?             | E2E
-e2e2@test.com         | ?             | E2E2
-danilshtefan.66@gmail.com | ?         | Danil
+Alice:
+  Email:    alice@test.com
+  Password: password123
+  Name:     Alice Johnson
+
+Bob:
+  Email:    bob@test.com
+  Password: password123
+  Name:     Bob Smith
+
+Charlie:
+  Email:    charlie@test.com
+  Password: password123
+  Name:     Charlie Brown
+
+Diana:
+  Email:    diana@test.com
+  Password: password123
+  Name:     Diana Prince
+
+Eve:
+  Email:    eve@test.com
+  Password: password123
+  Name:     Eve Wilson
+
+Frank:
+  Email:    frank@test.com
+  Password: password123
+  Name:     Frank Castle
+
+Grace:
+  Email:    grace@test.com
+  Password: password123
+  Name:     Grace Hopper
+
+Henry:
+  Email:    henry@test.com
+  Password: password123
+  Name:     Henry Ford
+
+Iris:
+  Email:    iris@test.com
+  Password: password123
+  Name:     Iris West

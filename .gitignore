@@ -2,5 +2,4 @@ node_modules/
 dist/
 .env.local
 *.log
-/tmp/pgdata
 .DS_Store
