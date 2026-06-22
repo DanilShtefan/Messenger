@@ -1,4 +1,5 @@
 import { Sidebar } from '@/widgets/Sidebar/Sidebar';
+import { ErrorBoundary } from '@/app/providers/ErrorBoundary';
 import styles from './MainLayout.module.css';
 import type { ReactNode } from 'react';
 
@@ -9,8 +10,12 @@ interface MainLayoutProps {
 export function MainLayout({ children }: MainLayoutProps) {
   return (
     <div className={styles.layout}>
-      <Sidebar />
-      {children}
+      <ErrorBoundary>
+        <Sidebar />
+      </ErrorBoundary>
+      <ErrorBoundary>
+        {children}
+      </ErrorBoundary>
     </div>
   );
 }

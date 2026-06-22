@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { Sidebar } from '@/widgets/Sidebar/Sidebar';
 import { ChatWindow } from '@/widgets/ChatWindow/ChatWindow';
+import { ErrorBoundary } from '@/app/providers/ErrorBoundary';
 import { useFetchChats } from '@/shared/hooks/useFetchChats';
 import { useAppSelector } from '@/app/hooks';
 import styles from './ChatDialogPage.module.css';
@@ -19,7 +20,9 @@ export function ChatDialogPage() {
   if (!dialogId || !dialog) {
     return (
       <div className={styles.layout}>
-        <Sidebar />
+        <ErrorBoundary>
+          <Sidebar />
+        </ErrorBoundary>
       </div>
     );
   }
@@ -31,12 +34,16 @@ export function ChatDialogPage() {
 
   return (
     <div className={styles.layout}>
-      <Sidebar />
-      <ChatWindow
-        dialogId={dialogId}
-        participantName={participantName}
-        participantAvatar={participantAvatar}
-      />
+      <ErrorBoundary>
+        <Sidebar />
+      </ErrorBoundary>
+      <ErrorBoundary>
+        <ChatWindow
+          dialogId={dialogId}
+          participantName={participantName}
+          participantAvatar={participantAvatar}
+        />
+      </ErrorBoundary>
     </div>
   );
 }
