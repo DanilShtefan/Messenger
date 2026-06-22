@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useRef } from 'react';
+import { memo, useMemo, useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { connectSocket } from '@/shared/lib/socket';
 import { useFetchChats } from '@/shared/hooks/useFetchChats';
@@ -9,7 +9,7 @@ import { formatDate, cn } from '@/shared/lib/helpers';
 import type { Message } from '@/shared/types';
 import styles from './Sidebar.module.css';
 
-export function MessagesTab() {
+export const MessagesTab = memo(function MessagesTab() {
   const { dialogId } = useParams();
   const navigate = useNavigate();
   const { chats, isLoading, updateChatLastMessage, incrementUnread } = useFetchChats();
@@ -49,6 +49,68 @@ export function MessagesTab() {
     return chats.filter((c) => c.participant?.displayName.toLowerCase().includes(q));
   }, [chats, search]);
 
+  const list = useMemo(() => {
+    if (isLoading) {
+      return Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className={styles.skeletonRow}>
+          <Skeleton width={40} height={40} borderRadius="50%" />
+          <div className={styles.skeletonText}>
+            <Skeleton width="60%" height={14} />
+            <Skeleton width="40%" height={12} />
+          </div>
+        </div>
+      ));
+    }
+
+    if (filtered.length === 0) {
+      return <div className={styles.empty}>No chats yet</div>;
+    }
+
+    return filtered.map((chat) => {
+      const participant = chat.participant;
+      if (!participant) return null;
+      const isActive = chat.id === dialogId;
+      const isMe = participant.id === currentUserId;
+
+      return (
+        <button
+          key={chat.id}
+          className={cn(styles.row, isActive && styles.rowActive)}
+          onClick={() => navigate(`/chats/${chat.id}`)}
+        >
+          <div className={styles.avatarWrap}>
+            <Avatar
+              src={participant.avatarUrl}
+              name={participant.displayName}
+              size="md"
+            />
+            {isOnline(participant.id) && <span className={styles.onlineDot} />}
+          </div>
+          <div className={styles.info}>
+            <div className={styles.top}>
+              <span className={styles.name}>
+                {isMe ? 'Saved Messages' : participant.displayName}
+              </span>
+              {chat.lastMessage && (
+                <span className={styles.time}>
+                  {formatDate(chat.lastMessage.createdAt)}
+                </span>
+              )}
+            </div>
+            <div className={styles.bottom}>
+              <span className={styles.preview}>
+                {chat.lastMessage?.content ?? 'No messages yet'}
+              </span>
+              {chat.unreadCount > 0 && (
+                <span className={styles.badge}>{chat.unreadCount}</span>
+              )}
+            </div>
+          </div>
+        </button>
+      );
+    });
+  }, [isLoading, filtered, dialogId, currentUserId, navigate, isOnline]);
+
   return (
     <>
       <div className={styles.search}>
@@ -60,66 +122,7 @@ export function MessagesTab() {
         />
       </div>
 
-      <div className={styles.list}>
-        {isLoading &&
-          Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className={styles.skeletonRow}>
-              <Skeleton width={40} height={40} borderRadius="50%" />
-              <div className={styles.skeletonText}>
-                <Skeleton width="60%" height={14} />
-                <Skeleton width="40%" height={12} />
-              </div>
-            </div>
-          ))}
-
-        {!isLoading && filtered.length === 0 && (
-          <div className={styles.empty}>No chats yet</div>
-        )}
-
-        {filtered.map((chat) => {
-          const participant = chat.participant;
-          if (!participant) return null;
-          const isActive = chat.id === dialogId;
-          const isMe = participant.id === currentUserId;
-
-          return (
-            <button
-              key={chat.id}
-              className={cn(styles.row, isActive && styles.rowActive)}
-              onClick={() => navigate(`/chats/${chat.id}`)}
-            >
-              <div className={styles.avatarWrap}>
-                <Avatar
-                  src={participant.avatarUrl}
-                  name={participant.displayName}
-                  size="md"
-                />
-                {isOnline(participant.id) && <span className={styles.onlineDot} />}
-              </div>
-              <div className={styles.info}>
-                <div className={styles.top}>
-                  <span className={styles.name}>
-                    {isMe ? 'Saved Messages' : participant.displayName}
-                  </span>
-                  {chat.lastMessage && (
-                    <span className={styles.time}>
-                      {formatDate(chat.lastMessage.createdAt)}
-                    </span>
-                  )}
-                </div>
-                <div className={styles.bottom}>
-                  <span className={styles.preview}>
-                    {chat.lastMessage?.content ?? 'No messages yet'}
-                  </span>
-                  {chat.unreadCount > 0 && (
-                    <span className={styles.badge}>{chat.unreadCount}</span>
-                  )}
-                </div>
-              </div>
-            </button>
-          );
-        })}
-      </div>
+      <div className={styles.list}>{list}</div>
     </>
   );
-}
+});
