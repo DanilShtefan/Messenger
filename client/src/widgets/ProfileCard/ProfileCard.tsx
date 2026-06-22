@@ -114,8 +114,32 @@ export function ProfileCard({ userId }: ProfileCardProps) {
     return (
       <div className={styles.card}>
         <Skeleton width={96} height={96} borderRadius="50%" />
-        <Skeleton width="40%" height={22} />
-        <Skeleton width="60%" height={14} />
+        <Skeleton width="40%" height={28} />
+        <Skeleton width="20%" height={16} />
+        <Skeleton width="30%" height={16} />
+        <div className={styles.about}>
+          <Skeleton width="100%" height={14} />
+          <Skeleton width="80%" height={14} />
+        </div>
+        <div className={styles.currentTrack}>
+          <Skeleton width={48} height={48} borderRadius="0.5rem" />
+          <div className={styles.trackMeta}>
+            <Skeleton width="40%" height={12} />
+            <Skeleton width="60%" height={14} />
+            <Skeleton width="30%" height={12} />
+          </div>
+        </div>
+        <div className={styles.currentMovie}>
+          <Skeleton width={48} height={48} borderRadius="0.5rem" />
+          <div className={styles.movieMeta}>
+            <Skeleton width="30%" height={12} />
+            <Skeleton width="50%" height={14} />
+          </div>
+        </div>
+        <div className={styles.actions}>
+          <Skeleton width="30%" height={36} borderRadius="0.5rem" />
+          <Skeleton width="30%" height={36} borderRadius="0.5rem" />
+        </div>
       </div>
     );
   }
