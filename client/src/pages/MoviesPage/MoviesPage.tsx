@@ -137,7 +137,6 @@ export function MoviesPage() {
                 onTimeUpdate={(e) => player.onTimeUpdate(e.currentTarget.currentTime)}
                 onDurationChange={(e) => player.onDurationChange(e.currentTarget.duration)}
                 onSeeked={(e) => player.onSeeked(e.currentTarget.currentTime)}
-                onError={() => setVideoUrl(null)}
               />
             ) : (
               <div className={styles.player}>

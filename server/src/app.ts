@@ -84,13 +84,9 @@ app.get('/api/movies/video/:identifier', async (req, res) => {
     const file = data.files?.find(
       (f: any) => f.source === 'original' && (f.format === 'MPEG4' || f.format === 'h.264'),
     );
-    if (file) {
-      res.json({ url: `http://archive.org/download/${req.params.identifier}/${file.name}` });
-    } else {
-      res.json({ url: `http://archive.org/download/${req.params.identifier}/${req.params.identifier}.mp4` });
-    }
+    const name = file ? file.name : `${req.params.identifier}.mp4`;
+    res.json({ url: `http://archive.org/download/${req.params.identifier}/${encodeURIComponent(name)}` });
   } catch {
-    // fallback: just try the default name
     res.json({ url: `http://archive.org/download/${req.params.identifier}/${req.params.identifier}.mp4` });
   }
 });
