@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { MessageSquare, Music, Film, Users, Settings, LogOut, Play, Pause, SkipBack, SkipForward, Volume2, Globe, Newspaper } from 'lucide-react';
+import { MessageSquare, Music, Film, Users, Settings, LogOut, Play, Pause, SkipBack, SkipForward, Volume2, Globe, Newspaper, Gamepad2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '@/app/hooks';
 import { connectSocket } from '@/shared/lib/socket';
@@ -128,6 +128,16 @@ export function Sidebar() {
           >
             <Newspaper size={20} className={styles.navIcon} />
             <span className={styles.navLabel}>{t('navigation.feed')}</span>
+          </button>
+        </div>
+
+        <div className={styles.section}>
+          <button
+            className={cn(styles.navItem, isActive('/games') && styles.active)}
+            onClick={() => navigate('/games')}
+          >
+            <Gamepad2 size={20} className={styles.navIcon} />
+            <span className={styles.navLabel}>{t('navigation.games')}</span>
           </button>
         </div>
 
