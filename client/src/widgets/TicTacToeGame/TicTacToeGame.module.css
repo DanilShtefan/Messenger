@@ -1,0 +1,155 @@
+.wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  background: #333;
+  border-radius: 8px;
+  padding: 4px;
+  width: min(280px, 80vw);
+  aspect-ratio: 1;
+}
+
+.cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1a1a2e;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.1s;
+  aspect-ratio: 1;
+  padding: 0;
+}
+
+.cell:hover:not(.disabled) {
+  background: #252545;
+}
+
+.cell:active:not(.disabled) {
+  background: #2a2a4a;
+}
+
+.disabled {
+  cursor: default;
+}
+
+.cellX {
+  color: #6366f1;
+  text-shadow: 0 0 12px rgba(99, 102, 241, 0.5);
+}
+
+.cellO {
+  color: #f59e0b;
+  text-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
+}
+
+.winCell {
+  animation: winPulse 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes winPulse {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.1); }
+}
+
+.lastMove {
+  position: relative;
+}
+
+.lastMove::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+.turnInfo {
+  font-size: 0.875rem;
+  color: #888;
+  font-weight: 600;
+  text-align: center;
+  min-height: 1.25rem;
+}
+
+.turnX {
+  color: #6366f1;
+}
+
+.turnO {
+  color: #f59e0b;
+}
+
+.resultOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.75);
+  border-radius: 12px;
+  gap: 1rem;
+  z-index: 10;
+}
+
+.resultText {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.resultActions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.rematchBtn {
+  padding: 0.625rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  background: #6366f1;
+  color: #fff;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.rematchBtn:hover {
+  background: #4f46e5;
+}
+
+.leaveBtn {
+  padding: 0.625rem 1.5rem;
+  border: 1px solid #555;
+  border-radius: 8px;
+  background: transparent;
+  color: #aaa;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.leaveBtn:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+@media (max-width: 767px) {
+  .wrapper {
+    padding: 0.5rem;
+  }
+}

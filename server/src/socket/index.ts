@@ -5,6 +5,7 @@ import { env, corsOrigin } from '../config/env.js';
 import type { JwtPayload } from '../middleware/auth.middleware.js';
 import { followRepository } from '../repositories/follow.repository.js';
 import { handleFighting, cleanupFightingSessions } from './fighting.js';
+import { handleTicTacToe, cleanupTicTacToeSessions } from './tictactoe.js';
 
 let io: Server;
 
@@ -209,6 +210,7 @@ export function initSocket(httpServer: HttpServer): Server {
     });
 
     handleFighting(socket, io, userId);
+    handleTicTacToe(socket, io, userId);
 
     socket.on('disconnect', () => {
       const sockets = userSockets.get(userId);
@@ -252,6 +254,8 @@ export function initSocket(httpServer: HttpServer): Server {
           }
           // Clean up fighting sessions
           cleanupFightingSessions(userId, io);
+          // Clean up tic-tac-toe sessions
+          cleanupTicTacToeSessions(userId, io);
         }
       }
     });

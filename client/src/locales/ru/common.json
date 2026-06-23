@@ -53,6 +53,14 @@
     }
   },
   "games": {
+    "title": "Игры",
+    "subtitle": "Выберите игру",
+    "tic_tac_toe": "Крестики-нолики",
+    "tic_tac_toe_desc": "Классические 3 в ряд",
+    "you_win": "Ты выиграл!",
+    "you_lose": "Ты проиграл!",
+    "your_turn": "Твой ход",
+    "opponent_turn": "Ход соперника",
     "fighting": "Файтинг",
     "fighting_desc": "1v1 файтинг",
     "controls": "Управление",

@@ -53,6 +53,14 @@
     }
   },
   "games": {
+    "title": "Games",
+    "subtitle": "Choose a game to play",
+    "tic_tac_toe": "Tic-Tac-Toe",
+    "tic_tac_toe_desc": "Classic 3-in-a-row",
+    "you_win": "You win!",
+    "you_lose": "You lose!",
+    "your_turn": "Your turn",
+    "opponent_turn": "Opponent's turn",
     "fighting": "Fighting",
     "fighting_desc": "1v1 fighting game",
     "controls": "Controls",
