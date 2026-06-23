@@ -12,6 +12,7 @@ interface UseFetchMessagesReturn {
   hasMore: boolean;
   loadMore: () => Promise<void>;
   addMessage: (msg: Message) => void;
+  editMessage: (messageId: string, content: string, updatedAt: string) => void;
   markAsRead: () => void;
 }
 
@@ -59,8 +60,25 @@ export function useFetchMessages(dialogId: string): UseFetchMessagesReturn {
     });
   }, [queryClient, queryKey]);
 
+  const editMessage = useCallback((messageId: string, content: string, updatedAt: string) => {
+    queryClient.setQueryData(queryKey, (old: any) => {
+      if (!old) return old;
+      return {
+        ...old,
+        pages: old.pages.map((page: any) => ({
+          ...page,
+          messages: page.messages.map((msg: Message) =>
+            msg.id === messageId ? { ...msg, content, updatedAt } : msg,
+          ),
+        })),
+      };
+    });
+  }, [queryClient, queryKey]);
+
   const addMessageRef = useRef(addMessage);
   addMessageRef.current = addMessage;
+  const editMessageRef = useRef(editMessage);
+  editMessageRef.current = editMessage;
   const userIdRef = useRef(currentUserId);
   userIdRef.current = currentUserId;
 
@@ -68,15 +86,22 @@ export function useFetchMessages(dialogId: string): UseFetchMessagesReturn {
     const socket = connectSocket();
     socket.emit('join:dialog', dialogId);
 
-    const handler = (msg: Message) => {
+    const newHandler = (msg: Message) => {
       if (msg.dialogId === dialogId && msg.senderId !== userIdRef.current) {
         addMessageRef.current(msg);
       }
     };
-    socket.on('message:new', handler);
+    const updateHandler = (msg: Message) => {
+      if (msg.dialogId === dialogId) {
+        editMessageRef.current(msg.id, msg.content, msg.updatedAt);
+      }
+    };
+    socket.on('message:new', newHandler);
+    socket.on('message:updated', updateHandler);
     return () => {
       socket.emit('leave:dialog', dialogId);
-      socket.off('message:new', handler);
+      socket.off('message:new', newHandler);
+      socket.off('message:updated', updateHandler);
     };
   }, [dialogId]);
 
@@ -103,6 +128,7 @@ export function useFetchMessages(dialogId: string): UseFetchMessagesReturn {
     hasMore: !!hasNextPage,
     loadMore,
     addMessage,
+    editMessage,
     markAsRead,
   };
 }

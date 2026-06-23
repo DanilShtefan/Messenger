@@ -82,12 +82,21 @@ export function useFetchChats(): UseFetchChatsReturn {
       updateChat(data.dialogId, (chat) => ({ ...chat, unreadCount: 0 }));
     };
 
+    const handleMessageUpdated = (msg: Message) => {
+      updateChat(msg.dialogId, (chat) => ({
+        ...chat,
+        lastMessage: chat.lastMessage?.id === msg.id ? msg : chat.lastMessage,
+      }));
+    };
+
     socket.on('message:new', handleMessage);
+    socket.on('message:updated', handleMessageUpdated);
     socket.on('dialog:created', handleDialogCreated);
     socket.on('dialog:read', handleDialogRead);
 
     return () => {
       socket.off('message:new', handleMessage);
+      socket.off('message:updated', handleMessageUpdated);
       socket.off('dialog:created', handleDialogCreated);
       socket.off('dialog:read', handleDialogRead);
     };

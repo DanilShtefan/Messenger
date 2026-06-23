@@ -7,6 +7,10 @@ const sendSchema = z.object({
   dialogId: z.string().uuid(),
 });
 
+const updateSchema = z.object({
+  content: z.string().min(1).max(5000),
+});
+
 export const messageController = {
   async getByDialog(req: Request, res: Response, next: NextFunction) {
     try {
@@ -16,6 +20,16 @@ export const messageController = {
 
       const result = await messageService.getByDialog(dialogId, req.user!.userId, cursor, limit);
       res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async update(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { content } = updateSchema.parse(req.body);
+      const message = await messageService.update(req.params.messageId as string, req.user!.userId, content);
+      res.json(message);
     } catch (err) {
       next(err);
     }

@@ -34,6 +34,25 @@ export const messageService = {
     };
   },
 
+  async update(messageId: string, userId: string, content: string) {
+    const message = await messageRepository.findById(messageId);
+    if (!message) throw ApiError.notFound('Message not found');
+    if (message.senderId !== userId) throw ApiError.forbidden('Cannot edit this message');
+
+    const updated = await messageRepository.update(messageId, { content });
+
+    const updatedMsg = {
+      ...updated,
+      createdAt: updated.createdAt.toISOString(),
+      updatedAt: updated.updatedAt.toISOString(),
+      readAt: null as string | null,
+    };
+
+    getIO().to(`dialog:${message.dialogId}`).emit('message:updated', updatedMsg);
+
+    return updatedMsg;
+  },
+
   async create(content: string, senderId: string, dialogId: string) {
     const dialog = await chatRepository.findById(dialogId);
     if (!dialog) throw ApiError.notFound('Dialog not found');

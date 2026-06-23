@@ -9,4 +9,7 @@ export const messagesApi = {
 
   send: (data: SendMessageRequest) =>
     apiClient.post<Message>('/messages', data).then((r) => r.data),
+
+  update: (messageId: string, content: string) =>
+    apiClient.put<Message>(`/messages/${messageId}`, { content }).then((r) => r.data),
 };

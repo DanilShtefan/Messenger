@@ -129,6 +129,9 @@ const resources = {
       'online': 'Online',
       'offline': 'Offline',
       'typing': 'Typing...',
+      'edited': 'edited',
+      'save': 'Save',
+      'edit_message': 'Edit message...',
     },
     session: {
       'join_session': 'Join session',
@@ -262,6 +265,9 @@ const resources = {
       'online': 'Онлайн',
       'offline': 'Офлайн',
       'typing': 'Печатает...',
+      'edited': 'изменено',
+      'save': 'Готово',
+      'edit_message': 'Редактировать сообщение...',
     },
     session: {
       'join_session': 'Присоединиться к сессии',

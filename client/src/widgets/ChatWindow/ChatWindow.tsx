@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import type { FormEvent, KeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Check, CheckCheck } from 'lucide-react';
+import { ArrowLeft, Check, CheckCheck, Pencil, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { connectSocket } from '@/shared/lib/socket';
 import { useFetchMessages } from '@/shared/hooks/useFetchMessages';
@@ -9,6 +9,7 @@ import { useSendMessage } from '@/shared/hooks/useSendMessage';
 import { useSocket } from '@/shared/hooks/useSocket';
 import { useFetchChats } from '@/shared/hooks/useFetchChats';
 import { chatsApi } from '@/shared/api/chats.api';
+import { messagesApi } from '@/shared/api/messages.api';
 import { useAppSelector } from '@/app/hooks';
 import { formatDate } from '@/shared/lib/helpers';
 import { Button, Avatar } from '@/shared/ui';
@@ -24,7 +25,7 @@ interface ChatWindowProps {
 export function ChatWindow({ dialogId, participantName, participantAvatar }: ChatWindowProps) {
   const { t } = useTranslation('chat');
   const navigate = useNavigate();
-  const { messages, isLoading, loadMore, hasMore, addMessage, markAsRead } = useFetchMessages(dialogId);
+  const { messages, isLoading, loadMore, hasMore, addMessage, editMessage, markAsRead } = useFetchMessages(dialogId);
   const { send, isLoading: isSending } = useSendMessage();
   const { resetUnreadCount } = useFetchChats();
   const currentUserId = useAppSelector((s) => s.user.currentUser?.id);
@@ -33,6 +34,7 @@ export function ChatWindow({ dialogId, participantName, participantAvatar }: Cha
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [text, setText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [editingMsgId, setEditingMsgId] = useState<string | null>(null);
 
   useEffect(() => {
     chatsApi.markAsRead(dialogId).catch(() => {});
@@ -108,14 +110,22 @@ export function ChatWindow({ dialogId, participantName, participantAvatar }: Cha
     const content = text.trim();
     if (!content) return;
     stopTyping();
-    setText('');
-    try {
-      const msg = await send({ content, dialogId });
-      addMessage(msg);
-    } catch {
-      // error handled in hook
+
+    if (editingMsgId) {
+      try {
+        const result = await messagesApi.update(editingMsgId, content);
+        editMessage(result.id, result.content, result.updatedAt);
+        setEditingMsgId(null);
+        setText('');
+      } catch {}
+    } else {
+      setText('');
+      try {
+        const msg = await send({ content, dialogId });
+        addMessage(msg);
+      } catch {}
     }
-  }, [text, send, dialogId, addMessage, stopTyping]);
+  }, [text, editingMsgId, send, dialogId, addMessage, editMessage, stopTyping]);
 
   const handleSubmit = useCallback((e: FormEvent) => {
     e.preventDefault();
@@ -140,6 +150,16 @@ export function ChatWindow({ dialogId, participantName, participantAvatar }: Cha
       loadMore();
     }
   }, [hasMore, loadMore]);
+
+  function startEdit(msg: Message) {
+    setEditingMsgId(msg.id);
+    setText(msg.content);
+  }
+
+  function cancelEdit() {
+    setEditingMsgId(null);
+    setText('');
+  }
 
   return (
     <div className={styles.window}>
@@ -172,6 +192,9 @@ export function ChatWindow({ dialogId, participantName, participantAvatar }: Cha
               <div className={styles.bubble}>
                 <p className={styles.text}>{msg.content}</p>
                 <span className={styles.time}>
+                  {msg.createdAt !== msg.updatedAt && (
+                    <span className={styles.edited}>{t('edited')}</span>
+                  )}
                   {formatDate(msg.createdAt)}
                   {isMine && (
                     msg.readAt
@@ -180,6 +203,11 @@ export function ChatWindow({ dialogId, participantName, participantAvatar }: Cha
                   )}
                 </span>
               </div>
+              {isMine && (
+                <button className={styles.editMsgBtn} onClick={() => startEdit(msg)} title="Edit">
+                  <Pencil size={12} />
+                </button>
+              )}
             </div>
           );
         })}
@@ -197,14 +225,19 @@ export function ChatWindow({ dialogId, participantName, participantAvatar }: Cha
       <form className={styles.inputArea} onSubmit={handleSubmit}>
         <textarea
           className={styles.textarea}
-          placeholder={t('type_message')}
+          placeholder={editingMsgId ? t('edit_message') : t('type_message')}
           value={text}
           onChange={(e) => handleChange(e.target.value)}
           onKeyDown={handleKeyDown}
           rows={1}
         />
+        {editingMsgId && (
+          <button className={styles.cancelEditBtn} onClick={cancelEdit} type="button" title="Cancel">
+            <X size={18} />
+          </button>
+        )}
         <Button type="submit" isLoading={isSending} disabled={!text.trim()}>
-          {t('send')}
+          {editingMsgId ? t('save') : t('send')}
         </Button>
       </form>
     </div>

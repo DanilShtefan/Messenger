@@ -27,6 +27,12 @@ export const messageRepository = {
   countByDialog: (dialogId: string): Promise<number> =>
     prisma.message.count({ where: { dialogId } }),
 
+  findById: (id: string): Promise<Message | null> =>
+    prisma.message.findUnique({ where: { id } }),
+
+  update: (id: string, data: { content: string }): Promise<Message> =>
+    prisma.message.update({ where: { id }, data }),
+
   create: (data: Pick<Message, 'content' | 'senderId' | 'dialogId'>): Promise<Message> =>
     prisma.message.create({ data }),
 };
