@@ -399,6 +399,18 @@
   font-weight: 600;
 }
 
+.gameLoading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1a1a2e;
+  border-radius: 12px;
+  color: #888;
+  font-family: monospace;
+  font-size: 1rem;
+}
+
 .resultActions {
   display: flex;
   gap: 0.75rem;

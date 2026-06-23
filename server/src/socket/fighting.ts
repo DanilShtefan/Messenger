@@ -103,15 +103,15 @@ def(MOVE_TYPES.KNOCK_DOWN,     { totalSteps: 10, nextType: MOVE_TYPES.ATTRACTIVE
 def(MOVE_TYPES.ATTRACTIVE_STAND_UP, { totalSteps: 4, height: PLAYER_HEIGHT });
 def(MOVE_TYPES.FALL,           { totalSteps: 7,  holdLast: true });
 def(MOVE_TYPES.WIN,            { totalSteps: 10, holdLast: true });
-def(MOVE_TYPES.HIGH_KICK,      { totalSteps: 13, stepDuration: 60, damage: 10, damageYOffset: PLAYER_HEIGHT * 0.7, damageWidth: PLAYER_WIDTH * 0.8 });
-def(MOVE_TYPES.LOW_KICK,       { totalSteps: 11, stepDuration: 60, damage: 6,  damageYOffset: PLAYER_HEIGHT * 0.4, damageWidth: PLAYER_WIDTH * 1.2 });
-def(MOVE_TYPES.HIGH_PUNCH,     { totalSteps: 8,  stepDuration: 60, damage: 8,  damageYOffset: PLAYER_HEIGHT * 0.7, damageWidth: PLAYER_WIDTH * 0.8 });
-def(MOVE_TYPES.LOW_PUNCH,      { totalSteps: 6,  stepDuration: 60, damage: 5,  damageYOffset: PLAYER_HEIGHT * 0.6 });
-def(MOVE_TYPES.UPPERCUT,       { totalSteps: 9,  stepDuration: 60, damage: 13, damageYOffset: PLAYER_HEIGHT * 0.7, damageWidth: PLAYER_WIDTH * 0.8, damageHeight: PLAYER_HEIGHT * 1.2, nextType: MOVE_TYPES.SQUAT, nextStep: 2, knockDown: true, height: PLAYER_HEIGHT });
-def(MOVE_TYPES.SQUAT_LOW_KICK, { totalSteps: 5,  stepDuration: 70, damage: 4,  damageWidth: PLAYER_WIDTH * 1.2,                  nextType: MOVE_TYPES.SQUAT, nextStep: 2 });
-def(MOVE_TYPES.SQUAT_HIGH_KICK,{ totalSteps: 7,  stepDuration: 70, damage: 6,  damageYOffset: PLAYER_HEIGHT * 0.4, damageWidth: PLAYER_WIDTH * 0.7, nextType: MOVE_TYPES.SQUAT, nextStep: 2 });
-def(MOVE_TYPES.SQUAT_LOW_PUNCH,{ totalSteps: 5,  stepDuration: 70, damage: 4,  damageYOffset: PLAYER_HEIGHT * 0.3, damageWidth: PLAYER_WIDTH * 0.6, nextType: MOVE_TYPES.SQUAT, nextStep: 2 });
-def(MOVE_TYPES.SPIN_KICK,      { totalSteps: 8,  stepDuration: 60, damage: 13, damageYOffset: PLAYER_HEIGHT * 0.6, damageWidth: PLAYER_WIDTH * 0.9, knockDown: true });
+def(MOVE_TYPES.HIGH_KICK,      { totalSteps: 13, stepDuration: 80, damage: 10, damageYOffset: PLAYER_HEIGHT * 0.7, damageWidth: PLAYER_WIDTH * 0.8 });
+def(MOVE_TYPES.LOW_KICK,       { totalSteps: 11, stepDuration: 65, damage: 6,  damageYOffset: PLAYER_HEIGHT * 0.4, damageWidth: PLAYER_WIDTH * 1.2 });
+def(MOVE_TYPES.HIGH_PUNCH,     { totalSteps: 8,  stepDuration: 65, damage: 8,  damageYOffset: PLAYER_HEIGHT * 0.7, damageWidth: PLAYER_WIDTH * 0.8 });
+def(MOVE_TYPES.LOW_PUNCH,      { totalSteps: 6,  stepDuration: 50, damage: 5,  damageYOffset: PLAYER_HEIGHT * 0.6 });
+def(MOVE_TYPES.UPPERCUT,       { totalSteps: 9,  stepDuration: 85, damage: 14, damageYOffset: PLAYER_HEIGHT * 0.7, damageWidth: PLAYER_WIDTH * 0.8, damageHeight: PLAYER_HEIGHT * 1.2, nextType: MOVE_TYPES.SQUAT, nextStep: 2, knockDown: true, height: PLAYER_HEIGHT });
+def(MOVE_TYPES.SQUAT_LOW_KICK, { totalSteps: 5,  stepDuration: 60, damage: 4,  damageWidth: PLAYER_WIDTH * 1.2,                  nextType: MOVE_TYPES.SQUAT, nextStep: 2 });
+def(MOVE_TYPES.SQUAT_HIGH_KICK,{ totalSteps: 7,  stepDuration: 65, damage: 6,  damageYOffset: PLAYER_HEIGHT * 0.4, damageWidth: PLAYER_WIDTH * 0.7, nextType: MOVE_TYPES.SQUAT, nextStep: 2 });
+def(MOVE_TYPES.SQUAT_LOW_PUNCH,{ totalSteps: 5,  stepDuration: 55, damage: 4,  damageYOffset: PLAYER_HEIGHT * 0.3, damageWidth: PLAYER_WIDTH * 0.6, nextType: MOVE_TYPES.SQUAT, nextStep: 2 });
+def(MOVE_TYPES.SPIN_KICK,      { totalSteps: 8,  stepDuration: 80, damage: 13, damageYOffset: PLAYER_HEIGHT * 0.6, damageWidth: PLAYER_WIDTH * 0.9, knockDown: true });
 for (const mt of [MOVE_TYPES.FORWARD_JUMP_KICK, MOVE_TYPES.BACKWARD_JUMP_KICK]) {
   def(mt, { totalSteps: 3, stepDuration: 80, damage: 10, jumpAttack: true });
 }
@@ -456,19 +456,34 @@ function applyDamage(defender: FighterState, damage: number, attackType: MoveTyp
   defender.height = getMoveInfo(newMt).height ?? PLAYER_HEIGHT;
 }
 
-function checkAttacks(f1: FighterState, f2: FighterState): void {
-  checkSingle(f1, f2);
-  checkSingle(f2, f1);
+function getStartupMs(mt: MoveType): number {
+  const mi = getMoveInfo(mt);
+  const dmgStep = mi.damage > 0 ? Math.floor(mi.totalSteps / 2) : Infinity;
+  return dmgStep * mi.stepDuration;
 }
 
-function checkSingle(attacker: FighterState, defender: FighterState): void {
-  if (attacker.damage > 0 && checkDistanceForAttack(attacker, defender)) {
-    const dmg = attacker.comboDamage > 0 ? attacker.comboDamage : attacker.damage;
-    const kd = attacker.comboKnockDown;
-    applyDamage(defender, dmg, attacker.moveType, kd);
-    attacker.damage = 0;
-    attacker.comboDamage = 0;
-    attacker.comboKnockDown = false;
+function checkAttacks(f1: FighterState, f2: FighterState): void {
+  const attacks: { attacker: FighterState; defender: FighterState; startup: number }[] = [];
+
+  if (f1.damage > 0 && checkDistanceForAttack(f1, f2)) {
+    attacks.push({ attacker: f1, defender: f2, startup: getStartupMs(f1.moveType) });
+  }
+  if (f2.damage > 0 && checkDistanceForAttack(f2, f1)) {
+    attacks.push({ attacker: f2, defender: f1, startup: getStartupMs(f2.moveType) });
+  }
+
+  // Faster attack resolves first — can interrupt slower one
+  attacks.sort((a, b) => a.startup - b.startup);
+
+  for (const atk of attacks) {
+    if (!canInterrupt(atk.defender.moveType)) continue;
+
+    const dmg = atk.attacker.comboDamage > 0 ? atk.attacker.comboDamage : atk.attacker.damage;
+    const kd = atk.attacker.comboKnockDown;
+    applyDamage(atk.defender, dmg, atk.attacker.moveType, kd);
+    atk.attacker.damage = 0;
+    atk.attacker.comboDamage = 0;
+    atk.attacker.comboKnockDown = false;
   }
 }
 

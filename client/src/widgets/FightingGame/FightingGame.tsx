@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   GameState, CANVAS_WIDTH, CANVAS_HEIGHT, PLAYER_BOTTOM,
@@ -32,73 +32,26 @@ function getSpriteX(fighterX: number, moveType: string, imgWidth: number): numbe
   return fighterX - PLAYER_WIDTH / 2;
 }
 
-function preloadAllImages(
-  onProgress: (loaded: number, total: number) => void,
-  onComplete: (cache: Map<string, HTMLImageElement>) => void,
-): void {
-  const urls: string[] = [];
-  const orientations = ['left', 'right'];
-  const names = ['subzero', 'kano'];
-  const moveTypes = Object.values(MOVE_TYPES);
-
-  for (const name of names) {
-    for (const orient of orientations) {
-      for (const mt of moveTypes) {
-        const count = IMAGE_COUNT_BY_MOVE_TYPE[mt] ?? 1;
-        for (let i = 0; i < count; i++) {
-          urls.push(buildSpriteUrl(name, orient, mt, i));
-        }
-      }
-    }
+function getOrCreateImage(cache: Map<string, HTMLImageElement>, url: string): HTMLImageElement | null {
+  if (cache.has(url)) {
+    const img = cache.get(url)!;
+    if (img.complete && img.naturalWidth > 0) return img;
+    return null;
   }
-
-  urls.push('/images/arena.png');
-
-  let loaded = 0;
-  const total = urls.length;
-  const cache = new Map<string, HTMLImageElement>();
-
-  for (const url of urls) {
-    const img = new Image();
-    img.onload = () => {
-      loaded++;
-      onProgress(loaded, total);
-      if (loaded >= total) onComplete(cache);
-    };
-    img.onerror = () => {
-      loaded++;
-      onProgress(loaded, total);
-      if (loaded >= total) onComplete(cache);
-    };
-    img.src = url;
-    cache.set(url, img);
-  }
+  const img = new Image();
+  img.src = url;
+  cache.set(url, img);
+  return null;
 }
 
 export function FightingGame({ state }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const imageCacheRef = useRef<Map<string, HTMLImageElement>>(new Map());
   const { t } = useTranslation('common');
-  const [loading, setLoading] = useState(true);
-  const [progress, setProgress] = useState(0);
-  const imageCacheRef = useRef<Map<string, HTMLImageElement> | null>(null);
-
-  useEffect(() => {
-    imageCacheRef.current = null;
-    setLoading(true);
-    setProgress(0);
-
-    preloadAllImages(
-      (loaded, total) => setProgress(Math.round((loaded / total) * 100)),
-      (cache) => {
-        imageCacheRef.current = cache;
-        setLoading(false);
-      },
-    );
-  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || loading) return;
+    if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -113,9 +66,9 @@ export function FightingGame({ state }: Props) {
     canvas.style.height = `${CANVAS_HEIGHT}px`;
     ctx.scale(dpr, dpr);
 
-    if (cache?.has('/images/arena.png')) {
-      const bg = cache.get('/images/arena.png')!;
-      ctx.drawImage(bg, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    const arena = getOrCreateImage(cache, '/images/arena.png');
+    if (arena) {
+      ctx.drawImage(arena, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     } else {
       ctx.fillStyle = '#1a1a2e';
       ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -197,14 +150,14 @@ export function FightingGame({ state }: Props) {
       const clampedStep = Math.min(step, count - 1);
 
       const url = buildSpriteUrl(name, orient, mt, clampedStep);
-      const img = cache?.get(url);
+      const img = getOrCreateImage(cache, url);
 
       ctx.fillStyle = 'rgba(0,0,0,0.35)';
       ctx.beginPath();
       ctx.ellipse(fighter.x, PLAYER_BOTTOM + 3, PLAYER_WIDTH / 2, 4, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      if (img && img.complete && img.naturalWidth > 0) {
+      if (img) {
         const sx = getSpriteX(fighter.x, mt, img.naturalWidth);
         const sy = fighter.y - img.naturalHeight;
         ctx.drawImage(img, sx, sy);
@@ -242,22 +195,11 @@ export function FightingGame({ state }: Props) {
       ctx.fillStyle = 'rgba(255,0,0,0.15)';
       ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     }
-  }, [state, loading]);
+  }, [state]);
 
   const countdownValue = state.status === 'countdown'
     ? Math.ceil(state.countdown / 20)
     : null;
-
-  if (loading) {
-    const loadText = `${t('games.loading')}... ${progress}%`;
-    return (
-      <div className={styles.container}>
-        <div className={styles.loadingOverlay}>
-          <span className={styles.loadingText}>{loadText}</span>
-        </div>
-      </div>
-    );
-  }
 
   const fightText = t('games.fight') ?? 'FIGHT!';
   const playerText = t('games.player') ?? 'Player';

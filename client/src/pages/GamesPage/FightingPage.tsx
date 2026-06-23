@@ -1,8 +1,11 @@
-import { useState, type ReactNode } from 'react';
+import { useState, Suspense, lazy, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFightingGame } from '@/shared/hooks/useFightingGame';
-import { FightingGame } from '@/widgets/FightingGame/FightingGame';
 import styles from './FightingPage.module.css';
+
+const FightingGame = lazy(() =>
+  import('@/widgets/FightingGame/FightingGame').then((m) => ({ default: m.FightingGame })),
+);
 
 const BEST_OF_OPTIONS = [1, 3, 5] as const;
 
@@ -45,19 +48,19 @@ function ControlsHint({ t }: { t: (key: string) => string }): ReactNode {
         </span>
         <span className={styles.specialsTitle}>{t('games.specials')}</span>
         <span className={styles.controlsRow}>
-          <span className={styles.special}>↓→ + HP</span>
+          <span className={styles.special}>↓→ + R</span>
           <span className={styles.action}>{t('games.power_strike')}</span>
         </span>
         <span className={styles.controlsRow}>
-          <span className={styles.special}>↓→ + HK</span>
+          <span className={styles.special}>↓→ + T</span>
           <span className={styles.action}>{t('games.spinning_kick')}</span>
         </span>
         <span className={styles.controlsRow}>
-          <span className={styles.special}>→↓→ + LP</span>
+          <span className={styles.special}>→↓→ + F</span>
           <span className={styles.action}>{t('games.dragon_uppercut')}</span>
         </span>
         <span className={styles.controlsRow}>
-          <span className={styles.special}>↓← + LK</span>
+          <span className={styles.special}>↓← + G</span>
           <span className={styles.action}>{t('games.sweep')}</span>
         </span>
       </div>
@@ -174,7 +177,11 @@ export function FightingPage() {
     return (
       <div className={styles.page}>
         <div className={styles.gameArea}>
-          {state.gameState && <FightingGame state={state.gameState} />}
+          {state.gameState && (
+            <Suspense fallback={<div className={styles.gameLoading}><span>{t('games.loading')}...</span></div>}>
+              <FightingGame state={state.gameState} />
+            </Suspense>
+          )}
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             <div className={styles.resultActions}>
               {state.screen === 'match_end' && (
@@ -202,7 +209,11 @@ export function FightingPage() {
   return (
     <div className={styles.page}>
       <div className={styles.gameArea}>
-        {state.gameState && <FightingGame state={state.gameState} />}
+        {state.gameState && (
+          <Suspense fallback={<div className={styles.gameLoading}><span>{t('games.loading')}...</span></div>}>
+            <FightingGame state={state.gameState} />
+          </Suspense>
+        )}
       </div>
     </div>
   );

@@ -11,7 +11,7 @@ export function useLogout() {
     try {
       const refreshToken = localStorage.getItem('refreshToken');
       if (refreshToken) {
-        await authApi.logout();
+        await authApi.logout(refreshToken);
       }
     } catch {
       // ignore — we clear locally anyway

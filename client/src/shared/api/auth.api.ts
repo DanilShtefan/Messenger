@@ -8,8 +8,8 @@ export const authApi = {
   register: (data: RegisterRequest) =>
     apiClient.post<AuthResponse>('/auth/register', data).then((r) => r.data),
 
-  logout: () =>
-    apiClient.post<void>('/auth/logout').then((r) => r.data),
+  logout: (refreshToken: string) =>
+    apiClient.post<void>('/auth/logout', { refreshToken }).then((r) => r.data),
 
   refresh: (refreshToken: string) =>
     apiClient.post<{ accessToken: string }>('/auth/refresh', { refreshToken }).then((r) => r.data),
