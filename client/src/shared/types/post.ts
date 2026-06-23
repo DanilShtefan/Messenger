@@ -10,6 +10,9 @@ export interface Post {
     displayName: string;
     avatarUrl: string | null;
   };
+  likeCount: number;
+  likedByMe: boolean;
+  viewsCount: number;
 }
 
 export interface PostsResponse {

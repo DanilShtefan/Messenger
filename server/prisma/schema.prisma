@@ -23,6 +23,8 @@ model User {
   friends       Friend[]      @relation("UserFriends")
   friendOf      Friend[]      @relation("FriendOf")
   posts         Post[] @relation("UserPosts")
+  postLikes     PostLike[]
+  postViews     PostView[]
 
   @@map("users")
 }
@@ -35,10 +37,36 @@ model Post {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  author User @relation("UserPosts", fields: [authorId], references: [id], onDelete: Cascade)
+  author User   @relation("UserPosts", fields: [authorId], references: [id], onDelete: Cascade)
+  likes  PostLike[]
+  views  PostView[]
 
   @@index([authorId, createdAt])
   @@map("posts")
+}
+
+model PostLike {
+  postId    String   @map("post_id")
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([postId, userId])
+  @@map("post_likes")
+}
+
+model PostView {
+  postId    String   @map("post_id")
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([postId, userId])
+  @@map("post_views")
 }
 
 model RefreshToken {

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFetchPosts } from '@/shared/hooks/useFetchPosts';
 import { postsApi } from '@/shared/api/posts.api';
@@ -15,7 +15,7 @@ interface ProfilePostsProps {
 
 export function ProfilePosts({ userId, isOwn }: ProfilePostsProps) {
   const { t } = useTranslation('common');
-  const { posts, isLoading, isLoadingMore, hasMore, loadMore, addPost, removePost } = useFetchPosts(userId);
+  const { posts, isLoading, isLoadingMore, hasMore, loadMore, addPost, removePost, toggleLike, updateViewCount } = useFetchPosts(userId);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -40,6 +40,13 @@ export function ProfilePosts({ userId, isOwn }: ProfilePostsProps) {
       removePost(postId);
     } catch {}
   };
+
+  const handleView = useCallback(async (postId: string) => {
+    try {
+      const { viewsCount } = await postsApi.addView(postId);
+      updateViewCount(postId, viewsCount);
+    } catch {}
+  }, [updateViewCount]);
 
   return (
     <div className={styles.wrapper}>
@@ -74,7 +81,14 @@ export function ProfilePosts({ userId, isOwn }: ProfilePostsProps) {
           <p className={styles.status}>{t('profile.no_bio')}</p>
         ) : (
           posts.map((post) => (
-            <PostCard key={post.id} post={post} isOwn={isOwn} onDeleted={handleDeleted} />
+            <PostCard
+              key={post.id}
+              post={post}
+              isOwn={isOwn}
+              onDeleted={handleDeleted}
+              onToggleLike={toggleLike}
+              onView={handleView}
+            />
           ))
         )}
         {isLoadingMore && <p className={styles.status}>Loading more...</p>}

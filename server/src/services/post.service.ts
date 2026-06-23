@@ -2,10 +2,18 @@ import { postRepository } from '../repositories/post.repository.js';
 import { ApiError } from '../errors/ApiError.js';
 
 export const postService = {
-  async getByUser(userId: string, cursor?: string, limit = 10) {
-    const posts = await postRepository.findByAuthor(userId, cursor, limit);
+  async getByUser(userId: string, cursor?: string, limit = 10, currentUserId?: string) {
+    const posts = await postRepository.findByAuthor(userId, cursor, limit, currentUserId);
     const hasMore = posts.length > limit;
     if (hasMore) posts.pop();
+
+    // Record views for non-author authenticated users
+    if (currentUserId && currentUserId !== userId) {
+      for (const post of posts) {
+        postRepository.addView(post.id, currentUserId).catch(() => {});
+      }
+    }
+
     return {
       posts: posts.map((p) => ({
         ...p,
@@ -36,10 +44,18 @@ export const postService = {
     await postRepository.delete(postId);
   },
 
-  async updateImage(postId: string, userId: string, imageUrl: string) {
+  async toggleLike(postId: string, userId: string) {
     const post = await postRepository.findById(postId);
     if (!post) throw ApiError.notFound('Post not found');
-    if (post.authorId !== userId) throw ApiError.forbidden('Cannot edit this post');
-    return postRepository.update(postId, { imageUrl });
+    return postRepository.toggleLike(postId, userId);
+  },
+
+  async addView(postId: string, userId: string) {
+    const post = await postRepository.findById(postId);
+    if (!post) throw ApiError.notFound('Post not found');
+    if (post.authorId === userId) return { viewsCount: await postRepository.getViewsCount(postId) };
+    await postRepository.addView(postId, userId);
+    const viewsCount = await postRepository.getViewsCount(postId);
+    return { viewsCount };
   },
 };

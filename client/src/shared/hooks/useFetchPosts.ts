@@ -11,6 +11,8 @@ interface UseFetchPostsReturn {
   loadMore: () => Promise<void>;
   addPost: (post: Post) => void;
   removePost: (postId: string) => void;
+  toggleLike: (postId: string) => void;
+  updateViewCount: (postId: string, viewsCount: number) => void;
 }
 
 const LIMIT = 10;
@@ -43,7 +45,7 @@ export function useFetchPosts(userId: string): UseFetchPostsReturn {
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const addPost = useCallback((post: Post) => {
-    queryClient.setQueryData(queryKey, (old: typeof data) => {
+    queryClient.setQueryData(queryKey, (old: any) => {
       if (!old) return { pages: [{ posts: [post], cursor: null }], pageParams: [undefined] };
       return {
         ...old,
@@ -53,13 +55,53 @@ export function useFetchPosts(userId: string): UseFetchPostsReturn {
   }, [queryClient, queryKey]);
 
   const removePost = useCallback((postId: string) => {
-    queryClient.setQueryData(queryKey, (old: typeof data) => {
+    queryClient.setQueryData(queryKey, (old: any) => {
       if (!old) return old;
       return {
         ...old,
-        pages: old.pages.map((page) => ({
+        pages: old.pages.map((page: any) => ({
           ...page,
-          posts: page.posts.filter((p) => p.id !== postId),
+          posts: page.posts.filter((p: Post) => p.id !== postId),
+        })),
+      };
+    });
+  }, [queryClient, queryKey]);
+
+  const toggleLike = useCallback(async (postId: string) => {
+    const prev = queryClient.getQueryData(queryKey);
+    // Optimistic update
+    queryClient.setQueryData(queryKey, (old: any) => {
+      if (!old) return old;
+      return {
+        ...old,
+        pages: old.pages.map((page: any) => ({
+          ...page,
+          posts: page.posts.map((p: Post) =>
+            p.id === postId
+              ? { ...p, likedByMe: !p.likedByMe, likeCount: p.likedByMe ? p.likeCount - 1 : p.likeCount + 1 }
+              : p,
+          ),
+        })),
+      };
+    });
+    try {
+      await postsApi.toggleLike(postId);
+    } catch {
+      // Rollback on error
+      queryClient.setQueryData(queryKey, prev);
+    }
+  }, [queryClient, queryKey]);
+
+  const updateViewCount = useCallback((postId: string, viewsCount: number) => {
+    queryClient.setQueryData(queryKey, (old: any) => {
+      if (!old) return old;
+      return {
+        ...old,
+        pages: old.pages.map((page: any) => ({
+          ...page,
+          posts: page.posts.map((p: Post) =>
+            p.id === postId ? { ...p, viewsCount } : p,
+          ),
         })),
       };
     });
@@ -73,5 +115,7 @@ export function useFetchPosts(userId: string): UseFetchPostsReturn {
     loadMore,
     addPost,
     removePost,
+    toggleLike,
+    updateViewCount,
   };
 }

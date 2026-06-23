@@ -39,7 +39,8 @@ export const postController = {
       const userId = req.params.id as string;
       const cursor = req.query.cursor as string | undefined;
       const limit = Math.min(Number(req.query.limit) || 10, 50);
-      const result = await postService.getByUser(userId, cursor, limit);
+      const currentUserId = req.user?.userId;
+      const result = await postService.getByUser(userId, cursor, limit, currentUserId);
       res.json(result);
     } catch (err) {
       next(err);
@@ -61,6 +62,24 @@ export const postController = {
     try {
       await postService.delete(req.params.id as string, req.user!.userId);
       res.status(204).end();
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async like(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await postService.toggleLike(req.params.id as string, req.user!.userId);
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async view(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await postService.addView(req.params.id as string, req.user!.userId);
+      res.json(result);
     } catch (err) {
       next(err);
     }

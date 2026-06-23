@@ -1,7 +1,7 @@
 import { prisma } from '../db.js';
 
 export const postRepository = {
-  findByAuthor(authorId: string, cursor?: string, limit = 10) {
+  findByAuthor(authorId: string, cursor?: string, limit = 10, currentUserId?: string) {
     return prisma.post.findMany({
       where: { authorId },
       orderBy: { createdAt: 'desc' },
@@ -9,12 +9,22 @@ export const postRepository = {
       ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
       include: {
         author: { select: { id: true, displayName: true, avatarUrl: true } },
+        _count: { select: { likes: true, views: true } },
+        ...(currentUserId
+          ? { likes: { where: { userId: currentUserId }, take: 1 } }
+          : {}),
       },
-    }) as Promise<Array<{
-      id: string; content: string; imageUrl: string | null;
-      authorId: string; createdAt: Date; updatedAt: Date;
-      author: { id: string; displayName: string; avatarUrl: string | null };
-    }>>;
+    }).then((rows) =>
+      rows.map((r) => {
+        const { _count, likes, ...rest } = r as any;
+        return {
+          ...rest,
+          likeCount: _count.likes,
+          likedByMe: currentUserId ? (likes?.length ?? 0) > 0 : false,
+          viewsCount: _count.views,
+        };
+      }),
+    );
   },
 
   findById(id: string) {
@@ -27,11 +37,12 @@ export const postRepository = {
       include: {
         author: { select: { id: true, displayName: true, avatarUrl: true } },
       },
-    }) as Promise<{
-      id: string; content: string; imageUrl: string | null;
-      authorId: string; createdAt: Date; updatedAt: Date;
-      author: { id: string; displayName: string; avatarUrl: string | null };
-    }>;
+    }).then((p) => ({
+      ...p,
+      likeCount: 0,
+      likedByMe: false,
+      viewsCount: 0,
+    }));
   },
 
   update(id: string, data: { imageUrl?: string | null }) {
@@ -40,5 +51,30 @@ export const postRepository = {
 
   delete(id: string) {
     return prisma.post.delete({ where: { id } });
+  },
+
+  async toggleLike(postId: string, userId: string) {
+    const existing = await prisma.postLike.findUnique({
+      where: { postId_userId: { postId, userId } },
+    });
+    if (existing) {
+      await prisma.postLike.delete({ where: { postId_userId: { postId, userId } } });
+    } else {
+      await prisma.postLike.create({ data: { postId, userId } });
+    }
+    const count = await prisma.postLike.count({ where: { postId } });
+    return { likedByMe: !existing, likeCount: count };
+  },
+
+  async addView(postId: string, userId: string) {
+    await prisma.postView.upsert({
+      where: { postId_userId: { postId, userId } },
+      create: { postId, userId },
+      update: {},
+    });
+  },
+
+  async getViewsCount(postId: string) {
+    return prisma.postView.count({ where: { postId } });
   },
 };

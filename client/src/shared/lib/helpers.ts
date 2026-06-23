@@ -21,6 +21,16 @@ export function formatDate(dateString: string): string {
   return dateFormatter.format(date);
 }
 
+const postDateFormatter = new Intl.DateTimeFormat('ru-RU', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+});
+
+export function formatPostDate(dateString: string): string {
+  return postDateFormatter.format(new Date(dateString));
+}
+
 export function getInitials(name: string): string {
   return name
     .split(' ')

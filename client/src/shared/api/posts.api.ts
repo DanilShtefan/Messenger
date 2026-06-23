@@ -16,4 +16,10 @@ export const postsApi = {
 
   delete: (postId: string) =>
     apiClient.delete(`/posts/${postId}`),
+
+  toggleLike: (postId: string) =>
+    apiClient.post<{ likedByMe: boolean; likeCount: number }>(`/posts/${postId}/like`).then((r) => r.data),
+
+  addView: (postId: string) =>
+    apiClient.post<{ viewsCount: number }>(`/posts/${postId}/view`).then((r) => r.data),
 };
