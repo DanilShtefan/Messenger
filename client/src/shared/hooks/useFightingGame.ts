@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { connectSocket } from '@/shared/lib/socket';
 import { useAppSelector } from '@/app/hooks';
-import { InputFlag, GameState, RoomInfo, FightingScreen } from '@/widgets/FightingGame/entities';
+import { GameState, RoomInfo, FightingScreen, KEY_NAMES } from '@/widgets/FightingGame/entities';
 
 interface FightingState {
   screen: FightingScreen;
@@ -13,19 +13,14 @@ interface FightingState {
   opponentName: string;
 }
 
+const ALLOWED_KEYS: ReadonlySet<string> = new Set(Object.values(KEY_NAMES));
+
 export function useFightingGame() {
   const user = useAppSelector((s) => s.user.currentUser);
-  const inputRef = useRef(0);
-  const inputSentRef = useRef(0);
   const screenRef = useRef<FightingScreen>('menu');
   const [state, setState] = useState<FightingState>({
-    screen: 'menu',
-    room: null,
-    gameState: null,
-    playerIndex: 0,
-    roundWinner: null,
-    matchWinner: null,
-    opponentName: '',
+    screen: 'menu', room: null, gameState: null,
+    playerIndex: 0, roundWinner: null, matchWinner: null, opponentName: '',
   });
 
   screenRef.current = state.screen;
@@ -34,22 +29,11 @@ export function useFightingGame() {
     const socket = connectSocket();
 
     const onCreated = (data: { code: string; playerIndex: number; room: RoomInfo }) => {
-      setState((prev) => ({
-        ...prev,
-        screen: 'lobby',
-        room: data.room,
-        playerIndex: data.playerIndex,
-      }));
+      setState((prev) => ({ ...prev, screen: 'lobby', room: data.room, playerIndex: data.playerIndex }));
     };
 
     const onJoined = (data: { opponent: string; bestOf: number; room: RoomInfo; playerIndex: number }) => {
-      setState((prev) => ({
-        ...prev,
-        screen: 'lobby',
-        room: data.room,
-        playerIndex: data.playerIndex,
-        opponentName: data.opponent,
-      }));
+      setState((prev) => ({ ...prev, screen: 'lobby', room: data.room, playerIndex: data.playerIndex, opponentName: data.opponent }));
     };
 
     const onOpponentJoined = (data: { opponent: string; room: RoomInfo }) => {
@@ -71,47 +55,25 @@ export function useFightingGame() {
     };
 
     const onStart = (data: { state: GameState }) => {
-      setState((prev) => ({
-        ...prev,
-        screen: 'countdown',
-        gameState: data.state,
-        roundWinner: null,
-        matchWinner: null,
-      }));
+      setState((prev) => ({ ...prev, screen: 'countdown', gameState: data.state, roundWinner: null, matchWinner: null }));
     };
 
     const onTick = (data: { state: GameState }) => {
       const gs = data.state;
       setState((prev) => {
-        let screen = prev.screen;
+        let screen: FightingScreen = prev.screen;
         if (gs.status === 'countdown') screen = 'countdown';
         else if (gs.status === 'playing') screen = 'playing';
         else if (gs.status === 'round_end') screen = 'round_end';
         else if (gs.status === 'match_end') screen = 'match_end';
-        return {
-          ...prev,
-          screen,
-          gameState: gs,
-          roundWinner: gs.roundWinner,
-          matchWinner: gs.matchWinner,
-        };
+        return { ...prev, screen, gameState: gs, roundWinner: gs.roundWinner, matchWinner: gs.matchWinner };
       });
     };
 
-    const onError = (data: { message: string }) => {
-      alert(data.message);
-    };
+    const onError = (data: { message: string }) => { alert(data.message); };
 
     const onOpponentLeft = () => {
-      setState({
-        screen: 'menu',
-        room: null,
-        gameState: null,
-        playerIndex: 0,
-        roundWinner: null,
-        matchWinner: null,
-        opponentName: '',
-      });
+      setState({ screen: 'menu', room: null, gameState: null, playerIndex: 0, roundWinner: null, matchWinner: null, opponentName: '' });
       alert('Opponent left the game');
     };
 
@@ -144,68 +106,20 @@ export function useFightingGame() {
     };
   }, []);
 
-  const sendInput = useCallback(() => {
-    const input = inputRef.current;
-    if (input !== inputSentRef.current) {
-      connectSocket().emit('fighting:input', { input });
-      inputSentRef.current = input;
-    }
-  }, []);
-
-  useEffect(() => {
-    if (state.screen !== 'playing' && state.screen !== 'countdown') return;
-    const interval = setInterval(sendInput, 50);
-    return () => clearInterval(interval);
-  }, [state.screen, sendInput]);
-
   useEffect(() => {
     if (state.screen !== 'playing' && state.screen !== 'countdown') return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      let bit = 0;
       if (e.repeat) return;
-      if (state.playerIndex === 0) {
-        if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') bit = InputFlag.LEFT;
-        else if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') bit = InputFlag.RIGHT;
-        else if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') bit = InputFlag.JUMP;
-        else if (e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') bit = InputFlag.BLOCK;
-        else if (e.key === 'f' || e.key === 'F') bit = InputFlag.PUNCH;
-        else if (e.key === 'g' || e.key === 'G') bit = InputFlag.KICK;
-      } else {
-        if (e.key === 'ArrowLeft') bit = InputFlag.LEFT;
-        else if (e.key === 'ArrowRight') bit = InputFlag.RIGHT;
-        else if (e.key === 'ArrowUp') bit = InputFlag.JUMP;
-        else if (e.key === 'ArrowDown') bit = InputFlag.BLOCK;
-        else if (e.key === 'j' || e.key === 'J') bit = InputFlag.PUNCH;
-        else if (e.key === 'k' || e.key === 'K') bit = InputFlag.KICK;
-      }
-      if (bit) {
-        e.preventDefault();
-        inputRef.current |= bit;
-      }
+      if (!ALLOWED_KEYS.has(e.code)) return;
+      e.preventDefault();
+      connectSocket().emit('fighting:keydown', { code: e.code });
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      let bit = 0;
-      if (state.playerIndex === 0) {
-        if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') bit = InputFlag.LEFT;
-        else if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') bit = InputFlag.RIGHT;
-        else if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') bit = InputFlag.JUMP;
-        else if (e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') bit = InputFlag.BLOCK;
-        else if (e.key === 'f' || e.key === 'F') bit = InputFlag.PUNCH;
-        else if (e.key === 'g' || e.key === 'G') bit = InputFlag.KICK;
-      } else {
-        if (e.key === 'ArrowLeft') bit = InputFlag.LEFT;
-        else if (e.key === 'ArrowRight') bit = InputFlag.RIGHT;
-        else if (e.key === 'ArrowUp') bit = InputFlag.JUMP;
-        else if (e.key === 'ArrowDown') bit = InputFlag.BLOCK;
-        else if (e.key === 'j' || e.key === 'J') bit = InputFlag.PUNCH;
-        else if (e.key === 'k' || e.key === 'K') bit = InputFlag.KICK;
-      }
-      if (bit) {
-        e.preventDefault();
-        inputRef.current &= ~bit;
-      }
+      if (!ALLOWED_KEYS.has(e.code)) return;
+      e.preventDefault();
+      connectSocket().emit('fighting:keyup', { code: e.code });
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -213,7 +127,6 @@ export function useFightingGame() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
-      inputRef.current = 0;
     };
   }, [state.screen, state.playerIndex]);
 
@@ -235,15 +148,7 @@ export function useFightingGame() {
 
   const leave = useCallback(() => {
     connectSocket().emit('fighting:leave');
-    setState({
-      screen: 'menu',
-      room: null,
-      gameState: null,
-      playerIndex: 0,
-      roundWinner: null,
-      matchWinner: null,
-      opponentName: '',
-    });
+    setState({ screen: 'menu', room: null, gameState: null, playerIndex: 0, roundWinner: null, matchWinner: null, opponentName: '' });
   }, []);
 
   return { state, createRoom, joinRoom, toggleReady, rematch, leave };

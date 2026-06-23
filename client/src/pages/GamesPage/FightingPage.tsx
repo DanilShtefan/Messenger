@@ -1,10 +1,69 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFightingGame } from '@/shared/hooks/useFightingGame';
 import { FightingGame } from '@/widgets/FightingGame/FightingGame';
 import styles from './FightingPage.module.css';
 
 const BEST_OF_OPTIONS = [1, 3, 5] as const;
+
+function ControlsHint({ t }: { t: (key: string) => string }): ReactNode {
+  return (
+    <div className={styles.controlsHint}>
+      <div className={styles.controlsColumn}>
+        <span className={styles.controlsTitle}>{t('games.controls')}</span>
+        <span className={styles.controlsRow}>
+          <span className={styles.key}>A</span><span className={styles.key}>D</span>
+          <span className={styles.action}>{t('games.move')}</span>
+        </span>
+        <span className={styles.controlsRow}>
+          <span className={styles.key}>W</span>
+          <span className={styles.action}>{t('games.jump')}</span>
+        </span>
+        <span className={styles.controlsRow}>
+          <span className={styles.key}>S</span>
+          <span className={styles.action}>{t('games.squat')}</span>
+        </span>
+        <span className={styles.controlsRow}>
+          <span className={styles.key}>Shift</span>
+          <span className={styles.action}>{t('games.block')}</span>
+        </span>
+        <span className={styles.controlsRow}>
+          <span className={styles.key}>R</span>
+          <span className={styles.action}>{t('games.high_punch')} (HP)</span>
+        </span>
+        <span className={styles.controlsRow}>
+          <span className={styles.key}>T</span>
+          <span className={styles.action}>{t('games.high_kick')} (HK)</span>
+        </span>
+        <span className={styles.controlsRow}>
+          <span className={styles.key}>F</span>
+          <span className={styles.action}>{t('games.low_punch')} (LP)</span>
+        </span>
+        <span className={styles.controlsRow}>
+          <span className={styles.key}>G</span>
+          <span className={styles.action}>{t('games.low_kick')} (LK)</span>
+        </span>
+        <span className={styles.specialsTitle}>{t('games.specials')}</span>
+        <span className={styles.controlsRow}>
+          <span className={styles.special}>↓→ + HP</span>
+          <span className={styles.action}>{t('games.power_strike')}</span>
+        </span>
+        <span className={styles.controlsRow}>
+          <span className={styles.special}>↓→ + HK</span>
+          <span className={styles.action}>{t('games.spinning_kick')}</span>
+        </span>
+        <span className={styles.controlsRow}>
+          <span className={styles.special}>→↓→ + LP</span>
+          <span className={styles.action}>{t('games.dragon_uppercut')}</span>
+        </span>
+        <span className={styles.controlsRow}>
+          <span className={styles.special}>↓← + LK</span>
+          <span className={styles.action}>{t('games.sweep')}</span>
+        </span>
+      </div>
+    </div>
+  );
+}
 
 export function FightingPage() {
   const { t } = useTranslation('common');
@@ -56,54 +115,7 @@ export function FightingPage() {
             </div>
           </div>
 
-          <div className={styles.controlsHint}>
-            <div className={styles.controlsColumn}>
-              <span className={styles.controlsTitle}>P1</span>
-              <span className={styles.controlsRow}>
-                <span className={styles.key}>A</span><span className={styles.key}>D</span>
-                <span className={styles.action}>{t('games.move')}</span>
-              </span>
-              <span className={styles.controlsRow}>
-                <span className={styles.key}>W</span>
-                <span className={styles.action}>{t('games.jump')}</span>
-              </span>
-              <span className={styles.controlsRow}>
-                <span className={styles.key}>S</span>
-                <span className={styles.action}>{t('games.block')}</span>
-              </span>
-              <span className={styles.controlsRow}>
-                <span className={styles.key}>F</span>
-                <span className={styles.action}>{t('games.punch')}</span>
-              </span>
-              <span className={styles.controlsRow}>
-                <span className={styles.key}>G</span>
-                <span className={styles.action}>{t('games.kick')}</span>
-              </span>
-            </div>
-            <div className={styles.controlsColumn}>
-              <span className={styles.controlsTitle}>P2</span>
-              <span className={styles.controlsRow}>
-                <span className={styles.key}>←</span><span className={styles.key}>→</span>
-                <span className={styles.action}>{t('games.move')}</span>
-              </span>
-              <span className={styles.controlsRow}>
-                <span className={styles.key}>↑</span>
-                <span className={styles.action}>{t('games.jump')}</span>
-              </span>
-              <span className={styles.controlsRow}>
-                <span className={styles.key}>↓</span>
-                <span className={styles.action}>{t('games.block')}</span>
-              </span>
-              <span className={styles.controlsRow}>
-                <span className={styles.key}>J</span>
-                <span className={styles.action}>{t('games.punch')}</span>
-              </span>
-              <span className={styles.controlsRow}>
-                <span className={styles.key}>K</span>
-                <span className={styles.action}>{t('games.kick')}</span>
-              </span>
-            </div>
-          </div>
+          <ControlsHint t={t} />
         </div>
       </div>
     );
@@ -152,54 +164,7 @@ export function FightingPage() {
               : t('games.ready_btn')}
           </button>
 
-          <div className={styles.controlsHint}>
-            <div className={styles.controlsColumn}>
-              <span className={styles.controlsTitle}>P1</span>
-              <span className={styles.controlsRow}>
-                <span className={styles.key}>A</span><span className={styles.key}>D</span>
-                <span className={styles.action}>{t('games.move')}</span>
-              </span>
-              <span className={styles.controlsRow}>
-                <span className={styles.key}>W</span>
-                <span className={styles.action}>{t('games.jump')}</span>
-              </span>
-              <span className={styles.controlsRow}>
-                <span className={styles.key}>S</span>
-                <span className={styles.action}>{t('games.block')}</span>
-              </span>
-              <span className={styles.controlsRow}>
-                <span className={styles.key}>F</span>
-                <span className={styles.action}>{t('games.punch')}</span>
-              </span>
-              <span className={styles.controlsRow}>
-                <span className={styles.key}>G</span>
-                <span className={styles.action}>{t('games.kick')}</span>
-              </span>
-            </div>
-            <div className={styles.controlsColumn}>
-              <span className={styles.controlsTitle}>P2</span>
-              <span className={styles.controlsRow}>
-                <span className={styles.key}>←</span><span className={styles.key}>→</span>
-                <span className={styles.action}>{t('games.move')}</span>
-              </span>
-              <span className={styles.controlsRow}>
-                <span className={styles.key}>↑</span>
-                <span className={styles.action}>{t('games.jump')}</span>
-              </span>
-              <span className={styles.controlsRow}>
-                <span className={styles.key}>↓</span>
-                <span className={styles.action}>{t('games.block')}</span>
-              </span>
-              <span className={styles.controlsRow}>
-                <span className={styles.key}>J</span>
-                <span className={styles.action}>{t('games.punch')}</span>
-              </span>
-              <span className={styles.controlsRow}>
-                <span className={styles.key}>K</span>
-                <span className={styles.action}>{t('games.kick')}</span>
-              </span>
-            </div>
-          </div>
+          <ControlsHint t={t} />
         </div>
       </div>
     );

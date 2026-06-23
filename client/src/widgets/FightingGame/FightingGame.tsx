@@ -1,14 +1,19 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { GameState, CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, FIGHTER_WIDTH, FIGHTER_HEIGHT } from './entities';
+import {
+  GameState, CANVAS_WIDTH, CANVAS_HEIGHT, PLAYER_BOTTOM,
+  PLAYER_WIDTH, PLAYER_HEIGHT, IMAGE_COUNT_BY_MOVE_TYPE,
+  MOVE_TYPES,
+} from './entities';
 import styles from './FightingGame.module.css';
 
 interface Props {
   state: GameState;
 }
 
-const COLORS = ['#3b82f6', '#ef4444'];
-const HP_COLORS = ['#22c55e', '#eab308', '#ef4444'];
+const COLORS = ['#3b82f6', '#ef4444'] as const;
+const HP_COLORS = ['#22c55e', '#eab308', '#ef4444'] as const;
+const FIGHTER_NAMES = ['subzero', 'kano'] as const;
 
 function getHpColor(ratio: number): string {
   if (ratio > 0.5) return HP_COLORS[0];
@@ -16,17 +21,91 @@ function getHpColor(ratio: number): string {
   return HP_COLORS[2];
 }
 
+function buildSpriteUrl(name: string, orientation: string, moveType: string, step: number): string {
+  return `/images/fighters/${name}/${orientation}/${moveType}/${step}.png`;
+}
+
+function getSpriteX(fighterX: number, moveType: string, imgWidth: number): number {
+  if (moveType === MOVE_TYPES.FALL || moveType === MOVE_TYPES.WIN) {
+    return fighterX - imgWidth / 2;
+  }
+  return fighterX - PLAYER_WIDTH / 2;
+}
+
+function preloadAllImages(
+  onProgress: (loaded: number, total: number) => void,
+  onComplete: (cache: Map<string, HTMLImageElement>) => void,
+): void {
+  const urls: string[] = [];
+  const orientations = ['left', 'right'];
+  const names = ['subzero', 'kano'];
+  const moveTypes = Object.values(MOVE_TYPES);
+
+  for (const name of names) {
+    for (const orient of orientations) {
+      for (const mt of moveTypes) {
+        const count = IMAGE_COUNT_BY_MOVE_TYPE[mt] ?? 1;
+        for (let i = 0; i < count; i++) {
+          urls.push(buildSpriteUrl(name, orient, mt, i));
+        }
+      }
+    }
+  }
+
+  urls.push('/images/arena.png');
+
+  let loaded = 0;
+  const total = urls.length;
+  const cache = new Map<string, HTMLImageElement>();
+
+  for (const url of urls) {
+    const img = new Image();
+    img.onload = () => {
+      loaded++;
+      onProgress(loaded, total);
+      if (loaded >= total) onComplete(cache);
+    };
+    img.onerror = () => {
+      loaded++;
+      onProgress(loaded, total);
+      if (loaded >= total) onComplete(cache);
+    };
+    img.src = url;
+    cache.set(url, img);
+  }
+}
+
 export function FightingGame({ state }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { t } = useTranslation('common');
+  const [loading, setLoading] = useState(true);
+  const [progress, setProgress] = useState(0);
+  const imageCacheRef = useRef<Map<string, HTMLImageElement> | null>(null);
+
+  useEffect(() => {
+    imageCacheRef.current = null;
+    setLoading(true);
+    setProgress(0);
+
+    preloadAllImages(
+      (loaded, total) => setProgress(Math.round((loaded / total) * 100)),
+      (cache) => {
+        imageCacheRef.current = cache;
+        setLoading(false);
+      },
+    );
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || loading) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const f = state.fighters;
+    const gs = state;
+    const f = gs.fighters;
+    const cache = imageCacheRef.current;
+
     const dpr = window.devicePixelRatio || 1;
     canvas.width = CANVAS_WIDTH * dpr;
     canvas.height = CANVAS_HEIGHT * dpr;
@@ -34,38 +113,32 @@ export function FightingGame({ state }: Props) {
     canvas.style.height = `${CANVAS_HEIGHT}px`;
     ctx.scale(dpr, dpr);
 
-    // Background
-    ctx.fillStyle = '#1a1a2e';
-    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-    // Ground
-    ctx.fillStyle = '#16213e';
-    ctx.fillRect(0, GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT - GROUND_Y);
-    ctx.strokeStyle = '#0f3460';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(0, GROUND_Y);
-    ctx.lineTo(CANVAS_WIDTH, GROUND_Y);
-    ctx.stroke();
-
-    // Grid lines
-    ctx.strokeStyle = 'rgba(255,255,255,0.03)';
-    ctx.lineWidth = 1;
-    for (let x = 0; x < CANVAS_WIDTH; x += 40) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, GROUND_Y);
-      ctx.stroke();
+    if (cache?.has('/images/arena.png')) {
+      const bg = cache.get('/images/arena.png')!;
+      ctx.drawImage(bg, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    } else {
+      ctx.fillStyle = '#1a1a2e';
+      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     }
 
-    // Health bars (top)
-    const barWidth = 300;
-    const barHeight = 20;
-    const barY = 20;
-    const barGap = 40;
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, PLAYER_BOTTOM);
+    ctx.lineTo(CANVAS_WIDTH, PLAYER_BOTTOM);
+    ctx.stroke();
 
-    // P1 health (left)
-    const p1Ratio = Math.max(0, f[0].hp / f[0].maxHp);
+    const barWidth = 200;
+    const barHeight = 18;
+    const barY = 16;
+    const barGap = 30;
+
+    const f0hp = f[0]!.hp;
+    const f0maxHp = f[0]!.maxHp;
+    const f1hp = f[1]!.hp;
+    const f1maxHp = f[1]!.maxHp;
+
+    const p1Ratio = Math.max(0, f0hp / f0maxHp);
     ctx.fillStyle = '#333';
     ctx.fillRect(barGap, barY, barWidth, barHeight);
     ctx.fillStyle = getHpColor(p1Ratio);
@@ -74,12 +147,11 @@ export function FightingGame({ state }: Props) {
     ctx.lineWidth = 2;
     ctx.strokeRect(barGap, barY, barWidth, barHeight);
     ctx.fillStyle = '#fff';
-    ctx.font = 'bold 12px monospace';
+    ctx.font = 'bold 11px monospace';
     ctx.textAlign = 'left';
-    ctx.fillText(`${f[0].hp}`, barGap + 8, barY + 15);
+    ctx.fillText(`${f0hp}`, barGap + 6, barY + 13);
 
-    // P2 health (right)
-    const p2Ratio = Math.max(0, f[1].hp / f[1].maxHp);
+    const p2Ratio = Math.max(0, f1hp / f1maxHp);
     const p2BarX = CANVAS_WIDTH - barWidth - barGap;
     ctx.fillStyle = '#333';
     ctx.fillRect(p2BarX, barY, barWidth, barHeight);
@@ -90,108 +162,108 @@ export function FightingGame({ state }: Props) {
     ctx.strokeRect(p2BarX, barY, barWidth, barHeight);
     ctx.fillStyle = '#fff';
     ctx.textAlign = 'right';
-    ctx.fillText(`${f[1].hp}`, p2BarX + barWidth - 8, barY + 15);
+    ctx.fillText(`${f1hp}`, p2BarX + barWidth - 6, barY + 13);
 
-    // Names
-    ctx.font = 'bold 14px monospace';
+    ctx.font = 'bold 13px monospace';
     ctx.textAlign = 'left';
     ctx.fillStyle = COLORS[0];
-    ctx.fillText('P1', barGap, barY - 6);
+    ctx.fillText('P1', barGap, barY - 5);
     ctx.textAlign = 'right';
     ctx.fillStyle = COLORS[1];
-    ctx.fillText('P2', CANVAS_WIDTH - barGap, barY - 6);
+    ctx.fillText('P2', CANVAS_WIDTH - barGap, barY - 5);
 
-    // Round scores
     ctx.textAlign = 'center';
-    ctx.font = 'bold 14px monospace';
+    ctx.font = 'bold 12px monospace';
     ctx.fillStyle = '#aaa';
-    ctx.fillText(`[ ${state.scores[0]} - ${state.scores[1]} ]`, CANVAS_WIDTH / 2, barY - 6);
+    ctx.fillText(`[ ${gs.scores[0]} - ${gs.scores[1]} ]`, CANVAS_WIDTH / 2, barY - 5);
 
-    // Timer (center between health bars)
-    const timerSec = Math.ceil(state.timer / 20);
+    const timerSec = Math.ceil(gs.timer / 20);
     ctx.textAlign = 'center';
-    ctx.font = 'bold 28px monospace';
+    ctx.font = 'bold 24px monospace';
     ctx.fillStyle = timerSec <= 10 ? '#ef4444' : '#fff';
-    ctx.fillText(String(timerSec), CANVAS_WIDTH / 2, barY + barHeight + 25);
+    ctx.fillText(String(timerSec), CANVAS_WIDTH / 2, barY + barHeight + 22);
 
-    // Round indicator
-    ctx.font = '12px monospace';
+    ctx.font = '11px monospace';
     ctx.fillStyle = '#888';
-    ctx.fillText(`Round ${state.round}`, CANVAS_WIDTH / 2, barY + barHeight + 45);
+    ctx.fillText(`Round ${gs.round}`, CANVAS_WIDTH / 2, barY + barHeight + 38);
 
-    // Draw fighters
     for (let i = 0; i < 2; i++) {
-      const fighter = f[i];
-      const color = COLORS[i];
-      const x = fighter.x - FIGHTER_WIDTH / 2;
-      const y = fighter.y - FIGHTER_HEIGHT;
+      const fighter = f[i]!;
+      const name = FIGHTER_NAMES[i] ?? 'subzero';
+      const orient = fighter.orientation;
+      const mt = fighter.moveType;
+      const step = fighter.currentStep;
+      const count = IMAGE_COUNT_BY_MOVE_TYPE[mt] ?? 1;
+      const clampedStep = Math.min(step, count - 1);
 
-      // Shadow
-      ctx.fillStyle = 'rgba(0,0,0,0.3)';
+      const url = buildSpriteUrl(name, orient, mt, clampedStep);
+      const img = cache?.get(url);
+
+      ctx.fillStyle = 'rgba(0,0,0,0.35)';
       ctx.beginPath();
-      ctx.ellipse(fighter.x, GROUND_Y + 2, FIGHTER_WIDTH / 2, 5, 0, 0, Math.PI * 2);
+      ctx.ellipse(fighter.x, PLAYER_BOTTOM + 3, PLAYER_WIDTH / 2, 4, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // Body
-      ctx.fillStyle = color;
-      ctx.fillRect(x, y, FIGHTER_WIDTH, FIGHTER_HEIGHT);
+      if (img && img.complete && img.naturalWidth > 0) {
+        const sx = getSpriteX(fighter.x, mt, img.naturalWidth);
+        const sy = fighter.y - img.naturalHeight;
+        ctx.drawImage(img, sx, sy);
+      } else {
+        const color = COLORS[i]!;
+        const fw = PLAYER_WIDTH;
+        const fh = PLAYER_HEIGHT;
+        const fx = fighter.x - fw / 2;
+        const fy = fighter.y - fh;
 
-      // Head
-      ctx.beginPath();
-      ctx.arc(fighter.x, y - 5, 12, 0, Math.PI * 2);
-      ctx.fill();
+        ctx.fillStyle = color;
+        ctx.fillRect(fx, fy, fw, fh);
 
-      // Direction indicator (small triangle)
-      ctx.fillStyle = '#fff';
-      const dirX = fighter.facingRight ? fighter.x + 14 : fighter.x - 14;
-      ctx.beginPath();
-      ctx.moveTo(dirX, y + FIGHTER_HEIGHT / 2);
-      ctx.lineTo(fighter.facingRight ? dirX - 8 : dirX + 8, y + FIGHTER_HEIGHT / 2 - 6);
-      ctx.lineTo(fighter.facingRight ? dirX - 8 : dirX + 8, y + FIGHTER_HEIGHT / 2 + 6);
-      ctx.closePath();
-      ctx.fill();
-
-      // Attack visual
-      if (fighter.status === 'punch') {
-        ctx.strokeStyle = '#fbbf24';
-        ctx.lineWidth = 3;
-        const punchX = fighter.facingRight ? fighter.x + FIGHTER_WIDTH / 2 : fighter.x - FIGHTER_WIDTH / 2;
         ctx.beginPath();
-        ctx.moveTo(punchX, y + FIGHTER_HEIGHT * 0.3);
-        ctx.lineTo(fighter.facingRight ? punchX + 25 : punchX - 25, y + FIGHTER_HEIGHT * 0.3);
-        ctx.stroke();
+        ctx.arc(fighter.x, fy - 4, 10, 0, Math.PI * 2);
+        ctx.fill();
       }
 
-      if (fighter.status === 'kick') {
-        ctx.strokeStyle = '#f97316';
-        ctx.lineWidth = 3;
-        const kickX = fighter.facingRight ? fighter.x + FIGHTER_WIDTH / 2 : fighter.x - FIGHTER_WIDTH / 2;
-        ctx.beginPath();
-        ctx.moveTo(kickX, y + FIGHTER_HEIGHT * 0.7);
-        ctx.lineTo(fighter.facingRight ? kickX + 35 : kickX - 35, y + FIGHTER_HEIGHT * 0.7);
-        ctx.stroke();
+      if (mt === MOVE_TYPES.ENDURE || mt === MOVE_TYPES.SQUAT_ENDURE || mt === MOVE_TYPES.KNOCK_DOWN) {
+        ctx.fillStyle = 'rgba(255,200,200,0.25)';
+        ctx.fillRect(fighter.x - PLAYER_WIDTH / 2, fighter.y - PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_HEIGHT);
       }
 
-      // Hit flash
-      if (fighter.status === 'hit') {
-        ctx.fillStyle = 'rgba(255,255,255,0.3)';
-        ctx.fillRect(x, y, FIGHTER_WIDTH, FIGHTER_HEIGHT);
-      }
-
-      // Block visual
-      if (fighter.status === 'block') {
-        ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+      if (mt === MOVE_TYPES.BLOCK) {
+        ctx.strokeStyle = 'rgba(255,255,255,0.45)';
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.arc(fighter.x, y + FIGHTER_HEIGHT / 2, FIGHTER_WIDTH * 0.8, 0, Math.PI * 2);
+        const bx = fighter.orientation === 'left' ? fighter.x + 15 : fighter.x - 15;
+        ctx.arc(bx, fighter.y - PLAYER_HEIGHT / 2, PLAYER_WIDTH * 0.5, 0, Math.PI * 2);
         ctx.stroke();
       }
     }
-  }, [state]);
+
+    if (f[0]!.hp <= 0 || f[1]!.hp <= 0) {
+      ctx.fillStyle = 'rgba(255,0,0,0.15)';
+      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    }
+  }, [state, loading]);
 
   const countdownValue = state.status === 'countdown'
     ? Math.ceil(state.countdown / 20)
     : null;
+
+  if (loading) {
+    const loadText = `${t('games.loading')}... ${progress}%`;
+    return (
+      <div className={styles.container}>
+        <div className={styles.loadingOverlay}>
+          <span className={styles.loadingText}>{loadText}</span>
+        </div>
+      </div>
+    );
+  }
+
+  const fightText = t('games.fight') ?? 'FIGHT!';
+  const playerText = t('games.player') ?? 'Player';
+  const winsRoundText = t('games.wins_round') ?? 'wins the round!';
+  const winsMatchText = t('games.wins_match') ?? 'wins the match!';
+  const drawText = t('games.draw') ?? 'Draw!';
 
   return (
     <div className={styles.container}>
@@ -199,7 +271,7 @@ export function FightingGame({ state }: Props) {
       {countdownValue !== null && countdownValue > 0 && (
         <div className={styles.overlay}>
           <span className={styles.countdownText}>
-            {countdownValue > 3 ? t('games.fight') : countdownValue}
+            {countdownValue > 3 ? fightText : countdownValue}
           </span>
         </div>
       )}
@@ -207,15 +279,15 @@ export function FightingGame({ state }: Props) {
         <div className={styles.overlay}>
           <span className={styles.roundEndText}>
             {state.roundWinner !== null
-              ? `${t('games.player')} ${state.roundWinner + 1} ${t('games.wins_round')}`
-              : t('games.draw')}
+              ? `${playerText} ${state.roundWinner + 1} ${winsRoundText}`
+              : drawText}
           </span>
         </div>
       )}
       {state.status === 'match_end' && (
         <div className={styles.overlay}>
           <span className={styles.matchEndText}>
-            🏆 {`${t('games.player')} ${state.matchWinner! + 1} ${t('games.wins_match')}`}
+            {`${playerText} ${state.matchWinner! + 1} ${winsMatchText}`}
           </span>
         </div>
       )}
