@@ -1,0 +1,97 @@
+.wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.canvas {
+  display: block;
+  border: 2px solid #333;
+  border-radius: 8px;
+  background: #1a1a2e;
+  max-width: 100%;
+  height: auto;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 400px;
+}
+
+.score {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  font-family: monospace;
+}
+
+.highScore {
+  font-size: 0.8125rem;
+  color: #888;
+  font-family: monospace;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.75);
+  border-radius: 12px;
+  gap: 1rem;
+  z-index: 10;
+}
+
+.overlayTitle {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #fff;
+}
+
+.overlayScore {
+  font-size: 1rem;
+  color: #888;
+  font-family: monospace;
+}
+
+.startBtn {
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.startBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(34, 197, 94, 0.4);
+}
+
+.controlsHint {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.75rem;
+  color: #555;
+  font-family: monospace;
+}
+
+@media (max-width: 767px) {
+  .wrapper {
+    gap: 0.5rem;
+  }
+
+  .controlsHint {
+    display: none;
+  }
+}

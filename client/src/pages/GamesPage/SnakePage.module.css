@@ -1,0 +1,30 @@
+.page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: #0f0f1a;
+}
+
+.container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+@media (max-width: 767px) {
+  .container {
+    padding: 1rem;
+    padding-top: 2.5rem;
+  }
+}
+
+.loading {
+  color: #888;
+  font-family: monospace;
+  font-size: 1rem;
+}
