@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { env, corsOrigin } from '../config/env.js';
 import type { JwtPayload } from '../middleware/auth.middleware.js';
 import { followRepository } from '../repositories/follow.repository.js';
+import { handleFighting, cleanupFightingSessions } from './fighting.js';
 
 let io: Server;
 
@@ -207,6 +208,8 @@ export function initSocket(httpServer: HttpServer): Server {
       }
     });
 
+    handleFighting(socket, io, userId);
+
     socket.on('disconnect', () => {
       const sockets = userSockets.get(userId);
       if (sockets) {
@@ -247,6 +250,8 @@ export function initSocket(httpServer: HttpServer): Server {
               break;
             }
           }
+          // Clean up fighting sessions
+          cleanupFightingSessions(userId, io);
         }
       }
     });
@@ -297,3 +302,5 @@ export async function emitNewPost(post: NewPostPayload, authorId: string) {
 export function getUserCurrentMoviePlayback(userId: string) {
   return movieCurrentPlayback.get(userId) ?? null;
 }
+
+

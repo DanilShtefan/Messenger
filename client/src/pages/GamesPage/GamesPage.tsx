@@ -1,9 +1,16 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Gamepad2, Grid3X3, Shapes } from 'lucide-react';
+import { Gamepad2, Grid3X3, Shapes, Sword } from 'lucide-react';
 import styles from './GamesPage.module.css';
 
 const games = [
+  {
+    id: 'fighting',
+    icon: Sword,
+    title: 'games.fighting',
+    description: 'games.fighting_desc',
+    color: '#ef4444',
+  },
   {
     id: 'tic-tac-toe',
     icon: Grid3X3,

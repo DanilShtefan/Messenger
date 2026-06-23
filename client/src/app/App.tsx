@@ -21,6 +21,7 @@ const MusicPage = lazy(() => import('@/pages/MusicPage/MusicPage').then((m) => (
 const MoviesPage = lazy(() => import('@/pages/MoviesPage/MoviesPage').then((m) => ({ default: m.MoviesPage })));
 const FeedPage = lazy(() => import('@/pages/FeedPage/FeedPage').then((m) => ({ default: m.FeedPage })));
 const GamesPage = lazy(() => import('@/pages/GamesPage/GamesPage').then((m) => ({ default: m.GamesPage })));
+const FightingPage = lazy(() => import('@/pages/GamesPage/FightingPage').then((m) => ({ default: m.FightingPage })));
 
 const NotFoundPage = () => <div className={styles.notFound}>404 Not Found</div>;
 
@@ -44,6 +45,7 @@ function AppRoutes() {
         <Route path="/movies" element={<AuthLayout><MoviePlayerProvider><MainLayout><MoviesPage /></MainLayout></MoviePlayerProvider></AuthLayout>} />
         <Route path="/feed" element={<AuthLayout><MainLayout><FeedPage /></MainLayout></AuthLayout>} />
         <Route path="/games" element={<AuthLayout><MainLayout><GamesPage /></MainLayout></AuthLayout>} />
+        <Route path="/games/fighting" element={<AuthLayout><MainLayout><FightingPage /></MainLayout></AuthLayout>} />
         <Route path="/" element={<Navigate to="/feed" replace />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
