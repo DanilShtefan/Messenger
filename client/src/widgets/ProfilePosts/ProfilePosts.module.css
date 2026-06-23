@@ -143,6 +143,136 @@
   color: var(--color-danger);
 }
 
+.editBtn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  transition: color 0.15s;
+}
+
+.editBtn:hover {
+  color: var(--color-text-secondary);
+}
+
+.editArea {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.editImageSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.editImageWrap {
+  position: relative;
+  width: fit-content;
+}
+
+.editImage {
+  max-height: 12rem;
+  max-width: 100%;
+  border-radius: 0.5rem;
+  object-fit: cover;
+}
+
+.removeImageBtn {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.addImageBtn {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  text-align: center;
+}
+
+.addImageBtn:hover {
+  background: var(--color-surface-alt);
+}
+
+.editTextarea {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  font: inherit;
+  font-size: 0.9375rem;
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  resize: vertical;
+  line-height: 1.5;
+  outline: none;
+}
+
+.editTextarea:focus {
+  border-color: var(--color-accent);
+}
+
+.editActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.saveBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  border: none;
+  border-radius: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  transition: opacity 0.15s;
+}
+
+.saveBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.cancelBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--color-text-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  transition: color 0.15s;
+}
+
+.cancelBtn:hover {
+  color: var(--color-text-secondary);
+}
+
 .cardStats {
   display: flex;
   align-items: center;
@@ -208,6 +338,13 @@
 .viewerMore {
   font-size: 0.75rem;
   color: var(--color-text-tertiary);
+}
+
+.editedBadge {
+  margin-left: auto;
+  font-size: 0.6875rem;
+  color: var(--color-text-tertiary);
+  font-style: italic;
 }
 
 .cardContent {

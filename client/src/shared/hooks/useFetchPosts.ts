@@ -12,6 +12,7 @@ interface UseFetchPostsReturn {
   loadMore: () => Promise<void>;
   addPost: (post: Post) => void;
   removePost: (postId: string) => void;
+  editPost: (postId: string, content: string, imageUrl?: string | null) => void;
   toggleLike: (postId: string) => void;
   updateViewCount: (postId: string, viewsCount: number) => void;
 }
@@ -63,6 +64,23 @@ export function useFetchPosts(userId: string): UseFetchPostsReturn {
         pages: old.pages.map((page: any) => ({
           ...page,
           posts: page.posts.filter((p: Post) => p.id !== postId),
+        })),
+      };
+    });
+  }, [queryClient, queryKey]);
+
+  const editPost = useCallback((postId: string, content: string, imageUrl?: string | null) => {
+    queryClient.setQueryData(queryKey, (old: any) => {
+      if (!old) return old;
+      return {
+        ...old,
+        pages: old.pages.map((page: any) => ({
+          ...page,
+          posts: page.posts.map((p: Post) =>
+            p.id === postId
+              ? { ...p, content, ...(imageUrl !== undefined ? { imageUrl } : {}) }
+              : p,
+          ),
         })),
       };
     });
@@ -129,6 +147,7 @@ export function useFetchPosts(userId: string): UseFetchPostsReturn {
     loadMore,
     addPost,
     removePost,
+    editPost,
     toggleLike,
     updateViewCount,
   };

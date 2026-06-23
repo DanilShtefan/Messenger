@@ -57,7 +57,7 @@ export const postRepository = {
     }));
   },
 
-  update(id: string, data: { imageUrl?: string | null }) {
+  update(id: string, data: { content?: string; imageUrl?: string | null }) {
     return prisma.post.update({ where: { id }, data });
   },
 

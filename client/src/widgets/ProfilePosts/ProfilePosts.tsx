@@ -15,7 +15,7 @@ interface ProfilePostsProps {
 
 export function ProfilePosts({ userId, isOwn }: ProfilePostsProps) {
   const { t } = useTranslation('common');
-  const { posts, isLoading, isLoadingMore, hasMore, loadMore, addPost, removePost, toggleLike, updateViewCount } = useFetchPosts(userId);
+  const { posts, isLoading, isLoadingMore, hasMore, loadMore, addPost, removePost, editPost, toggleLike, updateViewCount } = useFetchPosts(userId);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -39,6 +39,10 @@ export function ProfilePosts({ userId, isOwn }: ProfilePostsProps) {
       await postsApi.delete(postId);
       removePost(postId);
     } catch {}
+  };
+
+  const handleEdit = (postId: string, content: string, imageUrl?: string | null) => {
+    editPost(postId, content, imageUrl);
   };
 
   const handleView = useCallback(async (postId: string) => {
@@ -88,6 +92,7 @@ export function ProfilePosts({ userId, isOwn }: ProfilePostsProps) {
               onDeleted={handleDeleted}
               onToggleLike={toggleLike}
               onView={handleView}
+              onEdit={handleEdit}
             />
           ))
         )}

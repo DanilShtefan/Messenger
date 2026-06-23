@@ -40,6 +40,16 @@ export const postService = {
     return result;
   },
 
+  async update(postId: string, userId: string, content: string, imageUrl?: string | null) {
+    const post = await postRepository.findById(postId);
+    if (!post) throw ApiError.notFound('Post not found');
+    if (post.authorId !== userId) throw ApiError.forbidden('Cannot edit this post');
+    const data: { content: string; imageUrl?: string | null } = { content };
+    if (imageUrl !== undefined) data.imageUrl = imageUrl;
+    await postRepository.update(postId, data);
+    return { id: postId, content, imageUrl: imageUrl !== undefined ? imageUrl : post.imageUrl };
+  },
+
   async delete(postId: string, userId: string) {
     const post = await postRepository.findById(postId);
     if (!post) throw ApiError.notFound('Post not found');

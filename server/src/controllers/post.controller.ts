@@ -58,6 +58,22 @@ export const postController = {
     }
   },
 
+  async update(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { content, removeImage } = req.body;
+      const parsed = createSchema.parse({ content });
+      const imageUrl = req.file
+        ? `/uploads/posts/${req.file.filename}`
+        : removeImage === 'true'
+          ? null
+          : undefined;
+      const result = await postService.update(req.params.id as string, req.user!.userId, parsed.content, imageUrl);
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  },
+
   async delete(req: Request, res: Response, next: NextFunction) {
     try {
       await postService.delete(req.params.id as string, req.user!.userId);

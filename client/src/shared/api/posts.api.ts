@@ -14,6 +14,14 @@ export const postsApi = {
     return apiClient.post<Post>('/users/me/posts', form).then((r) => r.data);
   },
 
+  update: (postId: string, data: { content: string; image?: File; removeImage?: boolean }) => {
+    const form = new FormData();
+    form.append('content', data.content);
+    if (data.removeImage) form.append('removeImage', 'true');
+    if (data.image) form.append('image', data.image);
+    return apiClient.put<{ id: string; content: string; imageUrl: string | null }>(`/posts/${postId}`, form).then((r) => r.data);
+  },
+
   delete: (postId: string) =>
     apiClient.delete(`/posts/${postId}`),
 
