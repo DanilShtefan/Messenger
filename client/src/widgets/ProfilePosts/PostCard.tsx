@@ -64,9 +64,23 @@ export function PostCard({ post, isOwn, onDeleted, onToggleLike, onView }: PostC
           <Heart size={16} fill={post.likedByMe ? 'currentColor' : 'none'} />
           <span>{post.likeCount}</span>
         </button>
-        <span className={styles.statBtn}>
+        <span className={`${styles.statBtn} ${styles.viewsBtn}`}>
           <Eye size={16} />
           <span>{post.viewsCount}</span>
+          {post.viewersPreview.totalCount > 0 && (
+            <div className={styles.viewersTooltip}>
+              {post.viewersPreview.viewers.map((v) => (
+                <span key={v.id} className={styles.viewerItem}>
+                  {v.displayName}
+                </span>
+              ))}
+              {post.viewersPreview.totalCount > 3 && (
+                <span className={styles.viewerMore}>
+                  {t('profile.and_more', { count: post.viewersPreview.totalCount - 3 })}
+                </span>
+              )}
+            </div>
+          )}
         </span>
       </div>
     </div>

@@ -13,6 +13,14 @@ export interface Post {
   likeCount: number;
   likedByMe: boolean;
   viewsCount: number;
+  viewersPreview: {
+    viewers: Array<{
+      id: string;
+      displayName: string;
+      avatarUrl: string | null;
+    }>;
+    totalCount: number;
+  };
 }
 
 export interface PostsResponse {

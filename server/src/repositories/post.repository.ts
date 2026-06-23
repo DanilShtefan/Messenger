@@ -13,15 +13,26 @@ export const postRepository = {
         ...(currentUserId
           ? { likes: { where: { userId: currentUserId }, take: 1 } }
           : {}),
+        views: {
+          take: 3,
+          orderBy: { createdAt: 'desc' },
+          select: {
+            user: { select: { id: true, displayName: true, avatarUrl: true } },
+          },
+        },
       },
     }).then((rows) =>
       rows.map((r) => {
-        const { _count, likes, ...rest } = r as any;
+        const { _count, likes, views, ...rest } = r as any;
         return {
           ...rest,
           likeCount: _count.likes,
           likedByMe: currentUserId ? (likes?.length ?? 0) > 0 : false,
           viewsCount: _count.views,
+          viewersPreview: {
+            viewers: views.map((v: any) => v.user),
+            totalCount: _count.views,
+          },
         };
       }),
     );
@@ -42,6 +53,7 @@ export const postRepository = {
       likeCount: 0,
       likedByMe: false,
       viewsCount: 0,
+      viewersPreview: { viewers: [], totalCount: 0 },
     }));
   },
 
@@ -90,15 +102,26 @@ export const postRepository = {
         ...(currentUserId
           ? { likes: { where: { userId: currentUserId }, take: 1 } }
           : {}),
+        views: {
+          take: 3,
+          orderBy: { createdAt: 'desc' },
+          select: {
+            user: { select: { id: true, displayName: true, avatarUrl: true } },
+          },
+        },
       },
     }).then((rows) =>
       rows.map((r) => {
-        const { _count, likes, ...rest } = r as any;
+        const { _count, likes, views, ...rest } = r as any;
         return {
           ...rest,
           likeCount: _count.likes,
           likedByMe: currentUserId ? (likes?.length ?? 0) > 0 : false,
           viewsCount: _count.views,
+          viewersPreview: {
+            viewers: views.map((v: any) => v.user),
+            totalCount: _count.views,
+          },
         };
       }),
     );

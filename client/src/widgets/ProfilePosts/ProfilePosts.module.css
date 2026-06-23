@@ -174,6 +174,42 @@
   color: var(--color-danger);
 }
 
+.viewsBtn {
+  position: relative;
+  cursor: default;
+}
+
+.viewersTooltip {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  white-space: nowrap;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.viewsBtn:hover .viewersTooltip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.viewerItem {
+  font-size: 0.8125rem;
+  color: var(--color-text-primary);
+}
+
+.viewerMore {
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary);
+}
+
 .cardContent {
   font-size: 0.9375rem;
   color: var(--color-text-primary);
