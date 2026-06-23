@@ -15,7 +15,5 @@ export interface SendMessageRequest {
 
 export interface MessagesResponse {
   messages: Message[];
-  total: number;
-  page: number;
-  limit: number;
+  cursor: string | null;
 }

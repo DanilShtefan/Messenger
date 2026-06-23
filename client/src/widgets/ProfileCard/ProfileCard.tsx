@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { Film } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '@/app/hooks';
@@ -27,6 +28,7 @@ export function ProfileCard({ userId }: ProfileCardProps) {
   const { isOnline } = useOnlineStatus();
   const currentUserId = useAppSelector((s) => s.user.currentUser?.id);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [friends, setFriends] = useState<User[]>([]);
   const [sent, setSent] = useState<User[]>([]);
   const [sending, setSending] = useState(false);
@@ -94,6 +96,7 @@ export function ProfileCard({ userId }: ProfileCardProps) {
     setSending(true);
     try {
       const dialog = await chatsApi.getOrCreateByUserId(userId);
+      queryClient.invalidateQueries({ queryKey: ['chats'] });
       navigate(`/chats/${dialog.id}`);
     } catch {
       setSending(false);

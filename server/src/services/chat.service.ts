@@ -56,7 +56,12 @@ export const chatService = {
     const existing = await chatRepository.findDirectDialog(userId, participantId);
     if (existing) return existing;
 
-    return chatRepository.create([userId, participantId]);
+    const dialog = await chatRepository.create([userId, participantId]);
+
+    getIO().to(`user:${userId}`).emit('dialog:created', { dialogId: dialog.id });
+    getIO().to(`user:${participantId}`).emit('dialog:created', { dialogId: dialog.id });
+
+    return dialog;
   },
 
   async markAsRead(dialogId: string, userId: string) {

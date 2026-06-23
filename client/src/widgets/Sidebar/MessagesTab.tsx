@@ -1,20 +1,18 @@
-import { memo, useMemo, useState, useEffect, useRef } from 'react';
+import { memo, useMemo, useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { connectSocket } from '@/shared/lib/socket';
 import { useFetchChats } from '@/shared/hooks/useFetchChats';
 import { useOnlineStatus } from '@/shared/hooks/useOnlineStatus';
 import { useAppSelector } from '@/app/hooks';
 import { Avatar, Skeleton } from '@/shared/ui';
 import { formatDate, cn } from '@/shared/lib/helpers';
-import type { Message } from '@/shared/types';
 import styles from './Sidebar.module.css';
 
 export const MessagesTab = memo(function MessagesTab() {
   const { t } = useTranslation('chat');
   const { dialogId } = useParams();
   const navigate = useNavigate();
-  const { chats, isLoading, updateChatLastMessage, incrementUnread } = useFetchChats();
+  const { chats, isLoading } = useFetchChats();
   const currentUserId = useAppSelector((s) => s.user.currentUser?.id);
   const { isOnline } = useOnlineStatus();
   const [search, setSearch] = useState('');
@@ -24,32 +22,6 @@ export const MessagesTab = memo(function MessagesTab() {
     const timer = setTimeout(() => setDebouncedSearch(search), 300);
     return () => clearTimeout(timer);
   }, [search]);
-
-  useEffect(() => {
-    const socket = connectSocket();
-
-    function handleMessage(msg: Message) {
-      updateChatLastMessage(msg.dialogId, msg.content, msg.createdAt);
-      if (msg.senderId !== currentUserId) {
-        incrementUnread(msg.dialogId);
-      }
-    }
-
-    socket.on('message:new', handleMessage);
-    return () => { socket.off('message:new', handleMessage); };
-  }, [updateChatLastMessage, incrementUnread, currentUserId]);
-
-  const joinedIds = useRef(new Set<string>());
-
-  useEffect(() => {
-    const socket = connectSocket();
-    for (const chat of chats) {
-      if (!joinedIds.current.has(chat.id)) {
-        joinedIds.current.add(chat.id);
-        socket.emit('join:dialog', chat.id);
-      }
-    }
-  }, [chats]);
 
   const filtered = useMemo(() => {
     if (!debouncedSearch.trim()) return chats;

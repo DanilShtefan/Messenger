@@ -1,22 +1,23 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { chatsApi } from '@/shared/api/chats.api';
-import type { DialogListItem } from '@/shared/types';
+import { connectSocket } from '@/shared/lib/socket';
+import { useAppSelector } from '@/app/hooks';
+import type { DialogListItem, Message } from '@/shared/types';
 
 interface UseFetchChatsReturn {
   chats: DialogListItem[];
   isLoading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
-  updateChatLastMessage: (dialogId: string, content: string, createdAt: string) => void;
   resetUnreadCount: (dialogId: string) => void;
-  incrementUnread: (dialogId: string) => void;
 }
 
 const CHATS_KEY = ['chats'] as const;
 
 export function useFetchChats(): UseFetchChatsReturn {
   const queryClient = useQueryClient();
+  const currentUserId = useAppSelector((s) => s.user.currentUser?.id);
 
   const { data: chats = [], isLoading, error: queryError, refetch } = useQuery({
     queryKey: CHATS_KEY,
@@ -31,31 +32,68 @@ export function useFetchChats(): UseFetchChatsReturn {
   }, [totalUnread]);
 
   const updateChat = useCallback((dialogId: string, updater: (chat: DialogListItem) => DialogListItem) => {
-    queryClient.setQueryData<DialogListItem[]>(CHATS_KEY, (prev) =>
-      prev ? prev.map((chat) => (chat.id === dialogId ? updater(chat) : chat)) : prev,
-    );
+    queryClient.setQueryData<DialogListItem[]>(CHATS_KEY, (prev) => {
+      if (!prev) return prev;
+      const updated = prev.map((chat) => (chat.id === dialogId ? updater(chat) : chat));
+      updated.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+      return updated;
+    });
   }, [queryClient]);
-
-  const updateChatLastMessage = useCallback(
-    (dialogId: string, content: string, createdAt: string) => {
-      updateChat(dialogId, (chat) => ({
-        ...chat,
-        lastMessage: { id: '', content, senderId: '', dialogId, createdAt, updatedAt: createdAt, readAt: null },
-        updatedAt: createdAt,
-      }));
-    },
-    [updateChat],
-  );
 
   const resetUnreadCount = useCallback((dialogId: string) => {
     updateChat(dialogId, (chat) => ({ ...chat, unreadCount: 0 }));
   }, [updateChat]);
 
-  const incrementUnread = useCallback((dialogId: string) => {
-    updateChat(dialogId, (chat) => ({ ...chat, unreadCount: chat.unreadCount + 1 }));
-  }, [updateChat]);
+  const userIdRef = useRef(currentUserId);
+  userIdRef.current = currentUserId;
+
+  const joinedRef = useRef(new Set<string>());
+
+  useEffect(() => {
+    const socket = connectSocket();
+
+    for (const chat of chats) {
+      if (!joinedRef.current.has(chat.id)) {
+        joinedRef.current.add(chat.id);
+        socket.emit('join:dialog', chat.id);
+      }
+    }
+  }, [chats]);
+
+  useEffect(() => {
+    const socket = connectSocket();
+
+    const handleMessage = (msg: Message) => {
+      updateChat(msg.dialogId, (chat) => ({
+        ...chat,
+        lastMessage: msg,
+        updatedAt: msg.createdAt,
+      }));
+      if (msg.senderId !== userIdRef.current) {
+        updateChat(msg.dialogId, (c) => ({ ...c, unreadCount: c.unreadCount + 1 }));
+      }
+    };
+
+    const handleDialogCreated = () => {
+      queryClient.invalidateQueries({ queryKey: CHATS_KEY });
+    };
+
+    const handleDialogRead = (data: { dialogId: string }) => {
+      updateChat(data.dialogId, (chat) => ({ ...chat, unreadCount: 0 }));
+    };
+
+    socket.on('message:new', handleMessage);
+    socket.on('dialog:created', handleDialogCreated);
+    socket.on('dialog:read', handleDialogRead);
+
+    return () => {
+      socket.off('message:new', handleMessage);
+      socket.off('dialog:created', handleDialogCreated);
+      socket.off('dialog:read', handleDialogRead);
+    };
+  }, [queryClient, updateChat]);
 
   const error = queryError instanceof Error ? queryError.message : queryError ? 'Failed to load chats' : null;
 
-  return { chats, isLoading, error, refetch: () => refetch().then(() => {}), updateChatLastMessage, resetUnreadCount, incrementUnread };
+  return { chats, isLoading, error, refetch: () => refetch().then(() => {}), resetUnreadCount };
 }

@@ -1,10 +1,10 @@
 import { apiClient } from './axiosInstance';
-import type { Message, SendMessageRequest, MessagesResponse, PaginationParams } from '@/shared/types';
+import type { Message, SendMessageRequest, MessagesResponse } from '@/shared/types';
 
 export const messagesApi = {
-  getByDialog: (dialogId: string, params?: PaginationParams) =>
+  getByDialog: (dialogId: string, cursor?: string, limit = 30) =>
     apiClient
-      .get<MessagesResponse>(`/messages/${dialogId}`, { params })
+      .get<MessagesResponse>(`/messages/${dialogId}`, { params: { cursor, limit } })
       .then((r) => r.data),
 
   send: (data: SendMessageRequest) =>

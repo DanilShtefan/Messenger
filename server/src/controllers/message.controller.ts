@@ -11,10 +11,10 @@ export const messageController = {
   async getByDialog(req: Request, res: Response, next: NextFunction) {
     try {
       const dialogId = req.params.dialogId as string;
-      const page = Math.max(1, Number(req.query.page) || 1);
+      const cursor = req.query.cursor as string | undefined;
       const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 30));
 
-      const result = await messageService.getByDialog(dialogId, req.user!.userId, page, limit);
+      const result = await messageService.getByDialog(dialogId, req.user!.userId, cursor, limit);
       res.json(result);
     } catch (err) {
       next(err);

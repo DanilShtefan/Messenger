@@ -4,7 +4,7 @@ import { chatRepository } from '../repositories/chat.repository.js';
 import { getIO } from '../socket/index.js';
 
 export const messageService = {
-  async getByDialog(dialogId: string, userId: string, page: number, limit: number) {
+  async getByDialog(dialogId: string, userId: string, cursor?: string, limit = 30) {
     const dialog = await chatRepository.findById(dialogId);
     if (!dialog) throw ApiError.notFound('Dialog not found');
 
@@ -14,19 +14,24 @@ export const messageService = {
     const otherParticipant = dialog.participants.find((p) => p.userId !== userId);
     const lastReadAt = otherParticipant?.lastReadAt ?? new Date(0);
 
-    const [messages, total] = await Promise.all([
-      messageRepository.findByDialog(dialogId, page, limit),
-      messageRepository.countByDialog(dialogId),
-    ]);
+    const raw = cursor
+      ? await messageRepository.findByDialogBefore(dialogId, new Date(cursor), limit)
+      : await messageRepository.findLatestByDialog(dialogId, limit);
 
-    const messagesWithReadStatus = messages.reverse().map((msg) => ({
+    const hasMore = raw.length > limit;
+    if (hasMore) raw.pop();
+
+    const messages = raw.reverse().map((msg) => ({
       ...msg,
       createdAt: msg.createdAt.toISOString(),
       updatedAt: msg.updatedAt.toISOString(),
       readAt: msg.createdAt <= lastReadAt ? lastReadAt.toISOString() : null,
     }));
 
-    return { messages: messagesWithReadStatus, total, page, limit };
+    return {
+      messages,
+      cursor: hasMore ? raw[0]?.createdAt.toISOString() ?? null : null,
+    };
   },
 
   async create(content: string, senderId: string, dialogId: string) {
@@ -37,6 +42,8 @@ export const messageService = {
     if (!isParticipant) throw ApiError.forbidden('Not a participant');
 
     const message = await messageRepository.create({ content, senderId, dialogId });
+
+    chatRepository.touch(dialogId).catch(() => {});
 
     const messageWithRead = {
       ...message,

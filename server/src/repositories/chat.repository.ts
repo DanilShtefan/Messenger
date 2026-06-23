@@ -60,4 +60,7 @@ export const chatRepository = {
 
   addParticipant: (dialogId: string, userId: string): Promise<Participant> =>
     prisma.participant.create({ data: { dialogId, userId } }),
+
+  touch: (dialogId: string) =>
+    prisma.dialog.update({ where: { id: dialogId }, data: {} }),
 };

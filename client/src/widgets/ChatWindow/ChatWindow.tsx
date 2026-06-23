@@ -40,15 +40,16 @@ export function ChatWindow({ dialogId, participantName, participantAvatar }: Cha
     resetUnreadCount(dialogId);
   }, [dialogId, markAsRead, resetUnreadCount]);
 
-  const onNewMessage = useCallback(
-    (msg: Message) => {
-      if (msg.senderId !== currentUserId) {
-        addMessage(msg);
+  useEffect(() => {
+    const socket = connectSocket();
+    const handler = (msg: Message) => {
+      if (msg.dialogId === dialogId && msg.senderId !== currentUserId) {
         chatsApi.markAsRead(dialogId).catch(() => {});
       }
-    },
-    [currentUserId, addMessage, dialogId],
-  );
+    };
+    socket.on('message:new', handler);
+    return () => { socket.off('message:new', handler); };
+  }, [dialogId, currentUserId]);
 
   const onTypingStart = useCallback(
     (data: { dialogId: string; userId: string }) => {
@@ -77,7 +78,7 @@ export function ChatWindow({ dialogId, participantName, participantAvatar }: Cha
     [currentUserId, markAsRead],
   );
 
-  useSocket({ dialogId, onNewMessage, onTypingStart, onTypingStop, onDialogRead });
+  useSocket({ dialogId, onTypingStart, onTypingStop, onDialogRead });
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
