@@ -25,6 +25,8 @@ model User {
   posts         Post[] @relation("UserPosts")
   postLikes     PostLike[]
   postViews     PostView[]
+  followers     Follow[] @relation("Followers")
+  following     Follow[] @relation("Following")
 
   @@map("users")
 }
@@ -137,4 +139,16 @@ model Friend {
 
   @@id([userId, friendId])
   @@map("friends")
+}
+
+model Follow {
+  followerId  String   @map("follower_id")
+  followingId String   @map("following_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  follower  User @relation("Followers", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, followingId])
+  @@map("follows")
 }

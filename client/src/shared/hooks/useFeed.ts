@@ -1,26 +1,27 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
+import { followApi } from '@/shared/api/follow.api';
 import { postsApi } from '@/shared/api/posts.api';
+import { connectSocket } from '@/shared/lib/socket';
 import { syncLikeAcrossCaches } from '@/shared/lib/syncLikeAcrossCaches';
 import type { Post } from '@/shared/types';
 
-interface UseFetchPostsReturn {
+interface UseFeedReturn {
   posts: Post[];
   isLoading: boolean;
   isLoadingMore: boolean;
   hasMore: boolean;
   loadMore: () => Promise<void>;
-  addPost: (post: Post) => void;
-  removePost: (postId: string) => void;
   toggleLike: (postId: string) => void;
   updateViewCount: (postId: string, viewsCount: number) => void;
 }
 
 const LIMIT = 10;
 
-export function useFetchPosts(userId: string): UseFetchPostsReturn {
+const feedQueryKey = ['feed'] as const;
+
+export function useFeed(): UseFeedReturn {
   const queryClient = useQueryClient();
-  const queryKey = ['posts', userId];
 
   const {
     data,
@@ -29,15 +30,32 @@ export function useFetchPosts(userId: string): UseFetchPostsReturn {
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery({
-    queryKey,
-    queryFn: ({ pageParam }) => postsApi.getByUser(userId, pageParam ?? undefined, LIMIT),
+    queryKey: feedQueryKey,
+    queryFn: ({ pageParam }) => followApi.getFeed(pageParam ?? undefined, LIMIT),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.cursor ?? undefined,
     staleTime: 30_000,
-    enabled: !!userId,
   });
 
   const posts = data?.pages.flatMap((p) => p.posts) ?? [];
+
+  useEffect(() => {
+    const socket = connectSocket();
+    const handler = (newPost: Post) => {
+      queryClient.setQueryData(feedQueryKey, (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          pages: [
+            { posts: [newPost, ...old.pages[0].posts], cursor: old.pages[0].cursor },
+            ...old.pages.slice(1),
+          ],
+        };
+      });
+    };
+    socket.on('feed:newPost', handler);
+    return () => { socket.off('feed:newPost', handler); };
+  }, [queryClient]);
 
   const loadMore = useCallback(async () => {
     if (hasNextPage && !isFetchingNextPage) {
@@ -45,32 +63,9 @@ export function useFetchPosts(userId: string): UseFetchPostsReturn {
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  const addPost = useCallback((post: Post) => {
-    queryClient.setQueryData(queryKey, (old: any) => {
-      if (!old) return { pages: [{ posts: [post], cursor: null }], pageParams: [undefined] };
-      return {
-        ...old,
-        pages: [{ posts: [post, ...old.pages[0].posts], cursor: old.pages[0].cursor }, ...old.pages.slice(1)],
-      };
-    });
-  }, [queryClient, queryKey]);
-
-  const removePost = useCallback((postId: string) => {
-    queryClient.setQueryData(queryKey, (old: any) => {
-      if (!old) return old;
-      return {
-        ...old,
-        pages: old.pages.map((page: any) => ({
-          ...page,
-          posts: page.posts.filter((p: Post) => p.id !== postId),
-        })),
-      };
-    });
-  }, [queryClient, queryKey]);
-
   const toggleLike = useCallback(async (postId: string) => {
-    const prev = queryClient.getQueryData(queryKey);
-    queryClient.setQueryData(queryKey, (old: any) => {
+    const prev = queryClient.getQueryData(feedQueryKey);
+    queryClient.setQueryData(feedQueryKey, (old: any) => {
       if (!old) return old;
       return {
         ...old,
@@ -86,7 +81,7 @@ export function useFetchPosts(userId: string): UseFetchPostsReturn {
     });
     try {
       const result = await postsApi.toggleLike(postId);
-      queryClient.setQueryData(queryKey, (old: any) => {
+      queryClient.setQueryData(feedQueryKey, (old: any) => {
         if (!old) return old;
         return {
           ...old,
@@ -102,12 +97,12 @@ export function useFetchPosts(userId: string): UseFetchPostsReturn {
       });
       syncLikeAcrossCaches(queryClient, postId, result.likedByMe, result.likeCount);
     } catch {
-      queryClient.setQueryData(queryKey, prev);
+      queryClient.setQueryData(feedQueryKey, prev);
     }
-  }, [queryClient, queryKey]);
+  }, [queryClient]);
 
   const updateViewCount = useCallback((postId: string, viewsCount: number) => {
-    queryClient.setQueryData(queryKey, (old: any) => {
+    queryClient.setQueryData(feedQueryKey, (old: any) => {
       if (!old) return old;
       return {
         ...old,
@@ -119,7 +114,7 @@ export function useFetchPosts(userId: string): UseFetchPostsReturn {
         })),
       };
     });
-  }, [queryClient, queryKey]);
+  }, [queryClient]);
 
   return {
     posts,
@@ -127,8 +122,6 @@ export function useFetchPosts(userId: string): UseFetchPostsReturn {
     isLoadingMore: isFetchingNextPage,
     hasMore: !!hasNextPage,
     loadMore,
-    addPost,
-    removePost,
     toggleLike,
     updateViewCount,
   };

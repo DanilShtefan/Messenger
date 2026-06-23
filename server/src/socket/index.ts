@@ -3,6 +3,7 @@ import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import { env, corsOrigin } from '../config/env.js';
 import type { JwtPayload } from '../middleware/auth.middleware.js';
+import { followRepository } from '../repositories/follow.repository.js';
 
 let io: Server;
 
@@ -269,6 +270,28 @@ export function getUserCurrentTrack(userId: string) {
 
 export function getUserCurrentMovie(userId: string) {
   return currentMovies.get(userId) ?? null;
+}
+
+export interface NewPostPayload {
+  id: string;
+  content: string;
+  imageUrl: string | null;
+  authorId: string;
+  createdAt: string;
+  updatedAt: string;
+  author: { id: string; displayName: string; avatarUrl: string | null };
+  likeCount: number;
+  likedByMe: boolean;
+  viewsCount: number;
+}
+
+export async function emitNewPost(post: NewPostPayload, authorId: string) {
+  try {
+    const followerIds = await followRepository.getFollowerIds(authorId);
+    for (const fid of followerIds) {
+      getIO().to(`user:${fid}`).emit('feed:newPost', post);
+    }
+  } catch {}
 }
 
 export function getUserCurrentMoviePlayback(userId: string) {

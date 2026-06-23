@@ -77,4 +77,30 @@ export const postRepository = {
   async getViewsCount(postId: string) {
     return prisma.postView.count({ where: { postId } });
   },
+
+  findByAuthors(authorIds: string[], cursor?: string, limit = 10, currentUserId?: string) {
+    return prisma.post.findMany({
+      where: { authorId: { in: authorIds } },
+      orderBy: { createdAt: 'desc' },
+      take: limit + 1,
+      ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+      include: {
+        author: { select: { id: true, displayName: true, avatarUrl: true } },
+        _count: { select: { likes: true, views: true } },
+        ...(currentUserId
+          ? { likes: { where: { userId: currentUserId }, take: 1 } }
+          : {}),
+      },
+    }).then((rows) =>
+      rows.map((r) => {
+        const { _count, likes, ...rest } = r as any;
+        return {
+          ...rest,
+          likeCount: _count.likes,
+          likedByMe: currentUserId ? (likes?.length ?? 0) > 0 : false,
+          viewsCount: _count.views,
+        };
+      }),
+    );
+  },
 };

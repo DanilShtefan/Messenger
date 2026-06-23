@@ -19,6 +19,7 @@ const ChatDialogPage = lazy(() => import('@/pages/ChatDialogPage/ChatDialogPage'
 const FriendsPage = lazy(() => import('@/pages/FriendsPage/FriendsPage').then((m) => ({ default: m.FriendsPage })));
 const MusicPage = lazy(() => import('@/pages/MusicPage/MusicPage').then((m) => ({ default: m.MusicPage })));
 const MoviesPage = lazy(() => import('@/pages/MoviesPage/MoviesPage').then((m) => ({ default: m.MoviesPage })));
+const FeedPage = lazy(() => import('@/pages/FeedPage/FeedPage').then((m) => ({ default: m.FeedPage })));
 
 const NotFoundPage = () => <div className={styles.notFound}>404 Not Found</div>;
 
@@ -40,7 +41,8 @@ function AppRoutes() {
         <Route path="/friends" element={<AuthLayout><MainLayout><FriendsPage /></MainLayout></AuthLayout>} />
         <Route path="/music" element={<AuthLayout><MainLayout><MusicPage /></MainLayout></AuthLayout>} />
         <Route path="/movies" element={<AuthLayout><MoviePlayerProvider><MainLayout><MoviesPage /></MainLayout></MoviePlayerProvider></AuthLayout>} />
-        <Route path="/" element={<Navigate to="/chats" replace />} />
+        <Route path="/feed" element={<AuthLayout><MainLayout><FeedPage /></MainLayout></AuthLayout>} />
+        <Route path="/" element={<Navigate to="/feed" replace />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Suspense>

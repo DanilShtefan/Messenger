@@ -14,6 +14,7 @@ export interface UserProfile extends User {
   mutualFriendCount: number;
   currentTrack: { title: string; artist: string; cover: string } | null;
   currentMovie: { title: string; identifier: string } | null;
+  isFollowing: boolean;
 }
 
 export interface AuthTokens {

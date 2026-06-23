@@ -1,5 +1,6 @@
 import { postRepository } from '../repositories/post.repository.js';
 import { ApiError } from '../errors/ApiError.js';
+import { emitNewPost } from '../socket/index.js';
 
 export const postService = {
   async getByUser(userId: string, cursor?: string, limit = 10, currentUserId?: string) {
@@ -30,11 +31,13 @@ export const postService = {
       imageUrl: imageUrl ?? null,
       authorId,
     });
-    return {
+    const result = {
       ...post,
       createdAt: post.createdAt.toISOString(),
       updatedAt: post.updatedAt.toISOString(),
     };
+    emitNewPost(result, authorId).catch(() => {});
+    return result;
   },
 
   async delete(postId: string, userId: string) {

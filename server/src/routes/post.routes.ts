@@ -4,7 +4,7 @@ import { postController, uploadPostImage } from '../controllers/post.controller.
 
 export const postRoutes = Router();
 
-postRoutes.get('/users/:id/posts', postController.getByUser);
+postRoutes.get('/users/:id/posts', authenticate, postController.getByUser);
 postRoutes.post('/users/me/posts', authenticate, uploadPostImage, postController.create);
 postRoutes.delete('/posts/:id', authenticate, postController.delete);
 postRoutes.post('/posts/:id/like', authenticate, postController.like);

@@ -9,6 +9,7 @@ import { moviesApi } from '@/shared/api/movies.api';
 import { profileApi } from '@/shared/api/profile.api';
 import { friendsApi } from '@/shared/api/friends.api';
 import { chatsApi } from '@/shared/api/chats.api';
+import { followApi } from '@/shared/api/follow.api';
 import { cn } from '@/shared/lib/helpers';
 import { useMusicPlayer } from '@/shared/lib/MusicPlayerContext';
 import { useMoviePlayer } from '@/shared/lib/MoviePlayerContext';
@@ -53,6 +54,7 @@ export function ProfileCard({ userId }: ProfileCardProps) {
   const [editAbout, setEditAbout] = useState('');
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
 
   useEffect(() => {
     if (isEditing && profile) {
@@ -110,6 +112,17 @@ export function ProfileCard({ userId }: ProfileCardProps) {
       await friendsApi.remove(userId);
       await fetchState();
     } catch {}
+  }
+
+  async function handleToggleFollow() {
+    if (!profile) return;
+    setFollowLoading(true);
+    try {
+      const { isFollowing } = await followApi.toggleFollow(userId);
+      setProfile({ ...profile, isFollowing });
+    } catch {} finally {
+      setFollowLoading(false);
+    }
   }
 
   if (isLoading) {
@@ -299,6 +312,13 @@ export function ProfileCard({ userId }: ProfileCardProps) {
                   {t('profile.add_friend')}
                 </Button>
               )}
+              <Button
+                variant={profile.isFollowing ? 'secondary' : 'primary'}
+                onClick={handleToggleFollow}
+                isLoading={followLoading}
+              >
+                {profile.isFollowing ? t('profile.unfollow') : t('profile.follow')}
+              </Button>
               <Button variant="secondary" onClick={handleSendMessage} isLoading={sending}>
                 {t('profile.send_message')}
               </Button>
