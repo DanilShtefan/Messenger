@@ -12,6 +12,7 @@ import { userRoutes } from './routes/user.routes.js';
 import { chatRoutes } from './routes/chat.routes.js';
 import { messageRoutes } from './routes/message.routes.js';
 import { friendRoutes } from './routes/friend.routes.js';
+import { postRoutes } from './routes/post.routes.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -54,6 +55,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/chats', chatRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/friends', friendRoutes);
+app.use('/api', postRoutes);
 
 function fetchJson(url: string): Promise<any> {
   const mod = url.startsWith('https') ? https : http;

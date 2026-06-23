@@ -22,8 +22,23 @@ model User {
   refreshTokens RefreshToken[]
   friends       Friend[]      @relation("UserFriends")
   friendOf      Friend[]      @relation("FriendOf")
+  posts         Post[] @relation("UserPosts")
 
   @@map("users")
+}
+
+model Post {
+  id        String   @id @default(uuid())
+  content   String
+  imageUrl  String?  @map("image_url")
+  authorId  String   @map("author_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  author User @relation("UserPosts", fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([authorId, createdAt])
+  @@map("posts")
 }
 
 model RefreshToken {
