@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Gamepad2, Grid3X3, Shapes, Sword } from 'lucide-react';
+import { Gamepad2, Grid3X3, CircleDot, Sword } from 'lucide-react';
 import styles from './GamesPage.module.css';
 
 const games = [
@@ -26,10 +26,10 @@ const games = [
     color: '#22c55e',
   },
   {
-    id: 'memory',
-    icon: Shapes,
-    title: 'games.memory',
-    description: 'games.memory_desc',
+    id: 'checkers',
+    icon: CircleDot,
+    title: 'games.checkers',
+    description: 'games.checkers_desc',
     color: '#f59e0b',
   },
 ];

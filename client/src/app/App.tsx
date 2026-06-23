@@ -24,6 +24,7 @@ const GamesPage = lazy(() => import('@/pages/GamesPage/GamesPage').then((m) => (
 const FightingPage = lazy(() => import('@/pages/GamesPage/FightingPage').then((m) => ({ default: m.FightingPage })));
 const TicTacToePage = lazy(() => import('@/pages/GamesPage/TicTacToePage').then((m) => ({ default: m.TicTacToePage })));
 const SnakePage = lazy(() => import('@/pages/GamesPage/SnakePage').then((m) => ({ default: m.SnakePage })));
+const CheckersPage = lazy(() => import('@/pages/GamesPage/CheckersPage').then((m) => ({ default: m.CheckersPage })));
 
 const NotFoundPage = () => <div className={styles.notFound}>404 Not Found</div>;
 
@@ -50,6 +51,7 @@ function AppRoutes() {
         <Route path="/games/fighting" element={<AuthLayout><MainLayout><FightingPage /></MainLayout></AuthLayout>} />
         <Route path="/games/tic-tac-toe" element={<AuthLayout><MainLayout><TicTacToePage /></MainLayout></AuthLayout>} />
         <Route path="/games/snake" element={<AuthLayout><MainLayout><SnakePage /></MainLayout></AuthLayout>} />
+        <Route path="/games/checkers" element={<AuthLayout><MainLayout><CheckersPage /></MainLayout></AuthLayout>} />
         <Route path="/" element={<Navigate to="/feed" replace />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

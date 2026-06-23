@@ -6,6 +6,7 @@ import type { JwtPayload } from '../middleware/auth.middleware.js';
 import { followRepository } from '../repositories/follow.repository.js';
 import { handleFighting, cleanupFightingSessions } from './fighting.js';
 import { handleTicTacToe, cleanupTicTacToeSessions } from './tictactoe.js';
+import { handleCheckers, cleanupCheckersSessions } from './checkers.js';
 
 let io: Server;
 
@@ -211,6 +212,7 @@ export function initSocket(httpServer: HttpServer): Server {
 
     handleFighting(socket, io, userId);
     handleTicTacToe(socket, io, userId);
+    handleCheckers(socket, io, userId);
 
     socket.on('disconnect', () => {
       const sockets = userSockets.get(userId);
@@ -256,6 +258,8 @@ export function initSocket(httpServer: HttpServer): Server {
           cleanupFightingSessions(userId, io);
           // Clean up tic-tac-toe sessions
           cleanupTicTacToeSessions(userId, io);
+          // Clean up checkers sessions
+          cleanupCheckersSessions(userId, io);
         }
       }
     });
