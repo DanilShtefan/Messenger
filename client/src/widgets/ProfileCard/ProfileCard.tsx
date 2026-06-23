@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Film } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '@/app/hooks';
 import { useFetchProfile } from '@/shared/hooks/useFetchProfile';
 import { useOnlineStatus } from '@/shared/hooks/useOnlineStatus';
@@ -20,6 +21,7 @@ interface ProfileCardProps {
 }
 
 export function ProfileCard({ userId }: ProfileCardProps) {
+  const { t } = useTranslation('common');
   const { profile, isLoading, setProfile } = useFetchProfile(userId);
   const { isOnline } = useOnlineStatus();
   const currentUserId = useAppSelector((s) => s.user.currentUser?.id);
@@ -145,7 +147,7 @@ export function ProfileCard({ userId }: ProfileCardProps) {
   }
 
   if (!profile) {
-    return <div className={styles.card}>User not found</div>;
+    return <div className={styles.card}>{t('profile.user_not_found')}</div>;
   }
 
   return (
@@ -155,8 +157,8 @@ export function ProfileCard({ userId }: ProfileCardProps) {
         {online && <span className={styles.onlineDot} />}
         {isEditing && (
           <div className={styles.avatarOverlay}>
-            {uploadingAvatar ? (
-              <span className={styles.overlayText}>Uploading...</span>
+              {uploadingAvatar ? (
+                <span className={styles.overlayText}>{t('profile.uploading')}</span>
             ) : (
               <svg className={styles.plusIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                 <line x1="12" y1="5" x2="12" y2="19" />
@@ -177,12 +179,12 @@ export function ProfileCard({ userId }: ProfileCardProps) {
       {isEditing ? (
         <div className={styles.editForm}>
           <Input
-            label="Display name"
+            label={t('profile.display_name')}
             value={editName}
             onChange={(e) => setEditName(e.target.value)}
           />
           <div className={styles.inputWrap}>
-            <label className={styles.inputLabel}>About</label>
+            <label className={styles.inputLabel}>{t('profile.about')}</label>
             <textarea
               className={styles.textarea}
               value={editAbout}
@@ -192,8 +194,8 @@ export function ProfileCard({ userId }: ProfileCardProps) {
             />
           </div>
           <div className={styles.actions}>
-            <Button onClick={handleSave} isLoading={saving}>Save</Button>
-            <Button variant="ghost" onClick={() => setIsEditing(false)} disabled={saving}>Cancel</Button>
+            <Button onClick={handleSave} isLoading={saving}>{t('profile.save')}</Button>
+            <Button variant="ghost" onClick={() => setIsEditing(false)} disabled={saving}>{t('profile.cancel')}</Button>
           </div>
         </div>
       ) : (
@@ -201,13 +203,13 @@ export function ProfileCard({ userId }: ProfileCardProps) {
           <h1 className={styles.name}>{profile.displayName}</h1>
 
           <span className={cn(styles.status, online && styles.statusOnline)}>
-            {online ? 'Online' : 'Offline'}
+            {online ? t('profile.online') : t('profile.offline')}
           </span>
 
           <div className={styles.stats}>
-            <span className={styles.stat}><b>{profile.friendCount}</b> friends</span>
+            <span className={styles.stat}><b>{profile.friendCount}</b> {t('profile.friends_label')}</span>
             {!isOwn && profile.mutualFriendCount > 0 && (
-              <span className={styles.stat}><b>{profile.mutualFriendCount}</b> mutual</span>
+              <span className={styles.stat}><b>{profile.mutualFriendCount}</b> {t('profile.mutual_label')}</span>
             )}
           </div>
 
@@ -215,7 +217,7 @@ export function ProfileCard({ userId }: ProfileCardProps) {
             {profile.about ? (
               <p className={styles.aboutText}>{profile.about}</p>
             ) : (
-              <p className={styles.aboutEmpty}>No bio yet</p>
+              <p className={styles.aboutEmpty}>{t('profile.no_bio')}</p>
             )}
           </div>
 
@@ -227,18 +229,18 @@ export function ProfileCard({ userId }: ProfileCardProps) {
                 className={styles.trackCover}
               />
               <div className={styles.trackMeta}>
-                <span className={styles.trackLabel}>Listening to</span>
+                <span className={styles.trackLabel}>{t('profile.listening_to')}</span>
                 <span className={styles.trackName}>{profile.currentTrack.title}</span>
                 <span className={styles.trackArtist}>{profile.currentTrack.artist}</span>
               </div>
               {!isOwn && player.hostId !== userId && (
                 <button className={styles.joinBtn} onClick={() => player.joinSession(userId)}>
-                  Join
+                  {t('profile.join')}
                 </button>
               )}
               {player.hostId === userId && (
                 <button className={styles.joinBtn} onClick={player.leaveSession}>
-                  Leave
+                  {t('profile.leave')}
                 </button>
               )}
             </div>
@@ -256,7 +258,7 @@ export function ProfileCard({ userId }: ProfileCardProps) {
                 <Film className={styles.movieCoverFallback} size={20} />
               </div>
               <div className={styles.movieMeta}>
-                <span className={styles.movieLabel}>Watching</span>
+                <span className={styles.movieLabel}>{t('profile.watching')}</span>
                 <span className={styles.movieTitle}>{profile.currentMovie.title}</span>
               </div>
               {!isOwn && moviePlayer.hostId !== userId && (
@@ -267,12 +269,12 @@ export function ProfileCard({ userId }: ProfileCardProps) {
                     navigate('/movies');
                   }}
                 >
-                  Join
+                  {t('profile.join')}
                 </button>
               )}
               {moviePlayer.hostId === userId && (
                 <button className={styles.joinBtn} onClick={moviePlayer.leaveSession}>
-                  Leave
+                  {t('profile.leave')}
                 </button>
               )}
             </div>
@@ -280,25 +282,25 @@ export function ProfileCard({ userId }: ProfileCardProps) {
 
           {isOwn ? (
             <div className={styles.actions}>
-              <Button variant="secondary" onClick={() => setIsEditing(true)}>Edit profile</Button>
+              <Button variant="secondary" onClick={() => setIsEditing(true)}>{t('profile.edit_profile')}</Button>
             </div>
           ) : (
             <div className={styles.actions}>
               {isFriend ? (
                 <Button variant="secondary" onClick={handleRemoveFriend}>
-                  Friends
+                  {t('profile.friend_button')}
                 </Button>
               ) : hasSentRequest ? (
                 <Button variant="secondary" disabled>
-                  Request sent
+                  {t('profile.request_sent')}
                 </Button>
               ) : (
                 <Button onClick={handleAddFriend}>
-                  Add friend
+                  {t('profile.add_friend')}
                 </Button>
               )}
               <Button variant="secondary" onClick={handleSendMessage} isLoading={sending}>
-                Send message
+                {t('profile.send_message')}
               </Button>
             </div>
           )}

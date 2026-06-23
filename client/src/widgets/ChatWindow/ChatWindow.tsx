@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback, useState } from 'react';
 import type { FormEvent, KeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Check, CheckCheck } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { connectSocket } from '@/shared/lib/socket';
 import { useFetchMessages } from '@/shared/hooks/useFetchMessages';
 import { useSendMessage } from '@/shared/hooks/useSendMessage';
@@ -21,6 +22,7 @@ interface ChatWindowProps {
 }
 
 export function ChatWindow({ dialogId, participantName, participantAvatar }: ChatWindowProps) {
+  const { t } = useTranslation('chat');
   const navigate = useNavigate();
   const { messages, isLoading, loadMore, hasMore, addMessage, markAsRead } = useFetchMessages(dialogId);
   const { send, isLoading: isSending } = useSendMessage();
@@ -185,7 +187,7 @@ export function ChatWindow({ dialogId, participantName, participantAvatar }: Cha
             <span className={styles.typingDots}>
               <span className={styles.dot} /><span className={styles.dot} /><span className={styles.dot} />
             </span>
-            <span className={styles.typingText}>typing...</span>
+            <span className={styles.typingText}>{t('typing')}</span>
           </div>
         )}
         <div ref={bottomRef} />
@@ -194,14 +196,14 @@ export function ChatWindow({ dialogId, participantName, participantAvatar }: Cha
       <form className={styles.inputArea} onSubmit={handleSubmit}>
         <textarea
           className={styles.textarea}
-          placeholder="Write a message..."
+          placeholder={t('type_message')}
           value={text}
           onChange={(e) => handleChange(e.target.value)}
           onKeyDown={handleKeyDown}
           rows={1}
         />
         <Button type="submit" isLoading={isSending} disabled={!text.trim()}>
-          Send
+          {t('send')}
         </Button>
       </form>
     </div>

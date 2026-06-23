@@ -1,10 +1,12 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { musicApi } from '@/shared/api/music.api';
 import { useMusicPlayer } from '@/shared/lib/MusicPlayerContext';
 import { Skeleton } from '@/shared/ui';
 import styles from './MusicPage.module.css';
 
 export function MusicPage() {
+  const { t } = useTranslation('common');
   const { currentTrack, playing, tracks, setTracks, play } = useMusicPlayer();
 
   useEffect(() => {
@@ -16,7 +18,7 @@ export function MusicPage() {
   return (
     <div className={styles.page}>
       <div className={styles.trackList}>
-        <h2 className={styles.heading}>Popular tracks</h2>
+        <h2 className={styles.heading}>{t('music.popular_tracks')}</h2>
 
         {tracks.length === 0 && (
           <div className={styles.list}>

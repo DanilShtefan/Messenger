@@ -1,11 +1,13 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { Search, X, Play, Star, Loader } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { moviesApi, type IaMovie } from '@/shared/api/movies.api';
 import { Skeleton } from '@/shared/ui';
 import { useMoviePlayer } from '@/shared/lib/MoviePlayerContext';
 import styles from './MoviesPage.module.css';
 
 export function MoviesPage() {
+  const { t } = useTranslation('common');
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<IaMovie[]>([]);
   const [loading, setLoading] = useState(false);
@@ -44,12 +46,12 @@ export function MoviesPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <h2 className={styles.heading}>Public Domain Movies</h2>
+        <h2 className={styles.heading}>{t('movies.title')}</h2>
         <div className={styles.searchWrap}>
           <Search size={16} className={styles.searchIcon} />
           <input
             className={styles.searchInput}
-            placeholder="Search movies..."
+            placeholder={t('movies.search_placeholder')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -73,11 +75,11 @@ export function MoviesPage() {
         ))}
 
         {!loading && results.length === 0 && query.trim() && (
-          <div className={styles.empty}>No movies found</div>
+          <div className={styles.empty}>{t('movies.no_results')}</div>
         )}
 
         {!loading && !query.trim() && results.length === 0 && (
-          <div className={styles.empty}>No popular movies found</div>
+          <div className={styles.empty}>{t('movies.no_popular')}</div>
         )}
 
         {!loading && results.map((movie) => (
@@ -102,7 +104,7 @@ export function MoviesPage() {
                   </span>
                 )}
                 {movie.downloads != null && (
-                  <span className={styles.downloads}>{movie.downloads.toLocaleString()} downloads</span>
+                  <span className={styles.downloads}>{t('movies.downloads', { count: movie.downloads })}</span>
                 )}
               </div>
             </div>
@@ -140,7 +142,7 @@ export function MoviesPage() {
               />
             ) : (
               <div className={styles.player}>
-                <div className={styles.loaderWrap}>Failed to load video</div>
+                <div className={styles.loaderWrap}>{t('movies.failed_to_load')}</div>
               </div>
             )}
           </div>

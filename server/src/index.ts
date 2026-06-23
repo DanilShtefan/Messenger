@@ -13,8 +13,8 @@ initSocket(httpServer);
 async function runMigrations() {
   try {
     console.log('Running database migrations...');
-    const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    execSync('npx prisma migrate deploy', { cwd: __dirname, stdio: 'inherit' });
+    const projectRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+    execSync('npx prisma migrate deploy', { cwd: projectRoot, stdio: 'inherit' });
     console.log('Migrations completed successfully');
   } catch (err) {
     console.error('Migrations failed:', err);

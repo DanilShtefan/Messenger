@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import { ErrorBoundary } from '@/app/providers/ErrorBoundary';
+import { I18nProvider } from '@/i18n-provider';
 import { MusicPlayerProvider } from '@/shared/lib/MusicPlayerContext';
 import { MoviePlayerProvider } from '@/shared/lib/MoviePlayerContext';
 import { AuthGuard } from '@/features/auth/AuthGuard';
@@ -49,9 +50,11 @@ function AppRoutes() {
 export function App() {
   return (
     <ErrorBoundary>
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
+      <I18nProvider>
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+      </I18nProvider>
     </ErrorBoundary>
   );
 }

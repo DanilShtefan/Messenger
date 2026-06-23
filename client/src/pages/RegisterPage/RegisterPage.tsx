@@ -1,10 +1,12 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button, Input } from '@/shared/ui';
 import { useRegister } from '@/shared/hooks/useRegister';
 import styles from './RegisterPage.module.css';
 
 export function RegisterPage() {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const { register, isLoading, error } = useRegister();
 
@@ -15,10 +17,10 @@ export function RegisterPage() {
 
   function validate(): boolean {
     const errors: Record<string, string> = {};
-    if (!email.trim()) errors.email = 'Email is required';
-    if (!password) errors.password = 'Password is required';
-    else if (password.length < 6) errors.password = 'At least 6 characters';
-    if (!displayName.trim()) errors.displayName = 'Display name is required';
+    if (!email.trim()) errors.email = t('validation.required', { field: t('auth.register.email') });
+    if (!password) errors.password = t('validation.required', { field: t('auth.register.password') });
+    else if (password.length < 6) errors.password = t('validation.min_length', { count: 6 });
+    if (!displayName.trim()) errors.displayName = t('validation.display_name_required');
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
   }
@@ -38,22 +40,22 @@ export function RegisterPage() {
   return (
     <div className={styles.page}>
       <div className={styles.card}>
-        <h1 className={styles.title}>Create account</h1>
-        <p className={styles.subtitle}>Join Messenger today</p>
+        <h1 className={styles.title}>{t('auth.register.title_short')}</h1>
+        <p className={styles.subtitle}>{t('auth.register.subtitle')}</p>
 
         <form onSubmit={handleSubmit} className={styles.form} noValidate>
           <Input
-            label="Display name"
-            placeholder="Your name"
+            label={t('auth.register.name')}
+            placeholder={t('auth.register.name_placeholder')}
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
             error={fieldErrors.displayName}
           />
 
           <Input
-            label="Email"
+            label={t('auth.register.email')}
             type="email"
-            placeholder="you@example.com"
+            placeholder={t('auth.register.email_placeholder')}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             error={fieldErrors.email}
@@ -61,9 +63,9 @@ export function RegisterPage() {
           />
 
           <Input
-            label="Password"
+            label={t('auth.register.password')}
             type="password"
-            placeholder="At least 6 characters"
+            placeholder={t('auth.register.password_placeholder')}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             error={fieldErrors.password}
@@ -73,12 +75,12 @@ export function RegisterPage() {
           {error && <div className={styles.apiError}>{error}</div>}
 
           <Button type="submit" fullWidth isLoading={isLoading}>
-            Create account
+            {t('auth.register.button')}
           </Button>
         </form>
 
         <p className={styles.footer}>
-          Already have an account? <Link to="/login">Sign in</Link>
+          {t('auth.register.have_account')} <Link to="/login">{t('auth.login.title_short')}</Link>
         </p>
       </div>
     </div>

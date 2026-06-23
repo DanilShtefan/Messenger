@@ -1,9 +1,11 @@
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useFetchFriends } from '@/shared/hooks/useFetchFriends';
 import { Avatar, Button, Skeleton } from '@/shared/ui';
 import styles from './FriendsPage.module.css';
 
 export function FriendsPage() {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const { friends, incoming, suggested, isLoading, sendRequest, acceptRequest, rejectRequest, removeFriend } = useFetchFriends();
 
@@ -12,7 +14,7 @@ export function FriendsPage() {
       {isLoading && (
         <>
           <div className={styles.section}>
-            <h2 className={styles.sectionTitle}>Friends</h2>
+            <h2 className={styles.sectionTitle}>{t('friends.title')}</h2>
             <div className={styles.list}>
               {Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className={styles.card}>
@@ -27,7 +29,7 @@ export function FriendsPage() {
           </div>
 
           <div className={styles.section}>
-            <h2 className={styles.sectionTitle}>Friend requests</h2>
+            <h2 className={styles.sectionTitle}>{t('friends.requests')}</h2>
             <div className={styles.list}>
               {Array.from({ length: 2 }).map((_, i) => (
                 <div key={i} className={styles.card}>
@@ -42,7 +44,7 @@ export function FriendsPage() {
           </div>
 
           <div className={styles.section}>
-            <h2 className={styles.sectionTitle}>People you may know</h2>
+            <h2 className={styles.sectionTitle}>{t('friends.suggestions')}</h2>
             <div className={styles.list}>
               {Array.from({ length: 2 }).map((_, i) => (
                 <div key={i} className={styles.card}>
@@ -61,9 +63,9 @@ export function FriendsPage() {
       {!isLoading && (
         <>
           <div className={styles.section}>
-            <h2 className={styles.sectionTitle}>Friends</h2>
+            <h2 className={styles.sectionTitle}>{t('friends.title')}</h2>
             {friends.length === 0 ? (
-              <div className={styles.empty}>No friends yet</div>
+              <div className={styles.empty}>{t('friends.empty')}</div>
             ) : (
               <div className={styles.list}>
                 {friends.map((f) => (
@@ -71,14 +73,14 @@ export function FriendsPage() {
                     <Avatar src={f.avatarUrl} name={f.displayName} size="lg" />
                     <div className={styles.cardInfo}>
                       <span className={styles.cardName}>{f.displayName}</span>
-                      <span className={styles.cardStatus}>Friend</span>
+                      <span className={styles.cardStatus}>{t('friends.status_friend')}</span>
                     </div>
                     <Button
                       size="sm"
                       variant="ghost"
                       onClick={(e) => { e.stopPropagation(); removeFriend(f.id); }}
                     >
-                      Remove
+                      {t('friends.remove')}
                     </Button>
                   </div>
                 ))}
@@ -88,21 +90,21 @@ export function FriendsPage() {
 
           {incoming.length > 0 && (
             <div className={styles.section}>
-              <h2 className={styles.sectionTitle}>Friend requests</h2>
+              <h2 className={styles.sectionTitle}>{t('friends.requests')}</h2>
               <div className={styles.list}>
                 {incoming.map((u) => (
                   <div key={u.id} className={styles.card} onClick={() => navigate(`/profile/${u.id}`)}>
                     <Avatar src={u.avatarUrl} name={u.displayName} size="lg" />
                     <div className={styles.cardInfo}>
                       <span className={styles.cardName}>{u.displayName}</span>
-                      <span className={styles.cardStatus}>Wants to be your friend</span>
+                      <span className={styles.cardStatus}>{t('friends.status_wants_to_be')}</span>
                     </div>
                     <div className={styles.cardActions}>
                       <Button size="sm" onClick={(e) => { e.stopPropagation(); acceptRequest(u.id); }}>
-                        Accept
+                        {t('friends.accept')}
                       </Button>
                       <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); rejectRequest(u.id); }}>
-                        Reject
+                        {t('friends.reject')}
                       </Button>
                     </div>
                   </div>
@@ -113,17 +115,17 @@ export function FriendsPage() {
 
           {suggested.length > 0 && (
             <div className={styles.section}>
-              <h2 className={styles.sectionTitle}>People you may know</h2>
+              <h2 className={styles.sectionTitle}>{t('friends.suggestions')}</h2>
               <div className={styles.list}>
                 {suggested.map((u) => (
                   <div key={u.id} className={styles.card} onClick={() => navigate(`/profile/${u.id}`)}>
                     <Avatar src={u.avatarUrl} name={u.displayName} size="lg" />
                     <div className={styles.cardInfo}>
                       <span className={styles.cardName}>{u.displayName}</span>
-                      <span className={styles.cardStatus}>Not in friends</span>
+                      <span className={styles.cardStatus}>{t('friends.status_not_in_friends')}</span>
                     </div>
                     <Button size="sm" onClick={(e) => { e.stopPropagation(); sendRequest(u.id); }}>
-                      Add
+                      {t('friends.add')}
                     </Button>
                   </div>
                 ))}

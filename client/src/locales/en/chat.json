@@ -1,0 +1,17 @@
+{
+  "chat": {
+    "send_message": "Отправить сообщение",
+    "type_message": "Написать сообщение...",
+    "no_messages": "Сообщений нет",
+    "search": "Поиск",
+    "online": "Онлайн",
+    "offline": "Офлайн",
+    "typing": "Печатает..."
+  },
+  "session": {
+    "join_session": "Присоединиться к сессии",
+    "leave_session": "Покинуть сессию",
+    "listening_with_friend": "Слушаете вместе с другом",
+    "listeners": "Слушатели"
+  }
+}

@@ -1,5 +1,6 @@
 import { memo, useMemo, useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { connectSocket } from '@/shared/lib/socket';
 import { useFetchChats } from '@/shared/hooks/useFetchChats';
 import { useOnlineStatus } from '@/shared/hooks/useOnlineStatus';
@@ -10,6 +11,7 @@ import type { Message } from '@/shared/types';
 import styles from './Sidebar.module.css';
 
 export const MessagesTab = memo(function MessagesTab() {
+  const { t } = useTranslation('chat');
   const { dialogId } = useParams();
   const navigate = useNavigate();
   const { chats, isLoading, updateChatLastMessage, incrementUnread } = useFetchChats();
@@ -116,7 +118,7 @@ export const MessagesTab = memo(function MessagesTab() {
       <div className={styles.search}>
         <input
           className={styles.searchInput}
-          placeholder="Search chats..."
+          placeholder={t('search_chats')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />

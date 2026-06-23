@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { MessageSquare, Music, Film, Users, Settings, LogOut, Play, Pause, SkipBack, SkipForward, Volume2 } from 'lucide-react';
+import { MessageSquare, Music, Film, Users, Settings, LogOut, Play, Pause, SkipBack, SkipForward, Volume2, Globe } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '@/app/hooks';
 import { connectSocket } from '@/shared/lib/socket';
 import { friendsApi } from '@/shared/api/friends.api';
@@ -12,6 +13,7 @@ import { cn } from '@/shared/lib/helpers';
 import styles from './Sidebar.module.css';
 
 export function Sidebar() {
+  const { t, i18n } = useTranslation('common');
   const navigate = useNavigate();
   const location = useLocation();
   const user = useAppSelector((s) => s.user.currentUser);
@@ -57,6 +59,12 @@ export function Sidebar() {
     return location.pathname === path;
   };
 
+  const toggleLanguage = () => {
+    const newLang = i18n.language === 'en' ? 'ru' : 'en';
+    i18n.changeLanguage(newLang);
+    localStorage.setItem('i18nextLng', newLang);
+  };
+
   return (
     <aside className={styles.sidebar}>
       <div className={styles.nav}>
@@ -66,7 +74,7 @@ export function Sidebar() {
             onClick={() => user && navigate(`/profile/${user.id}`)}
           >
             <Avatar src={user?.avatarUrl ?? null} name={user?.displayName ?? '?'} size="sm" />
-            <span className={styles.navLabel}>{user?.displayName ?? 'Profile'}</span>
+            <span className={styles.navLabel}>{user?.displayName ?? t('navigation.profile')}</span>
           </button>
         </div>
 
@@ -76,7 +84,7 @@ export function Sidebar() {
             onClick={() => navigate('/chats')}
           >
             <MessageSquare size={20} className={styles.navIcon} />
-            <span className={styles.navLabel}>Messages</span>
+            <span className={styles.navLabel}>{t('navigation.chats')}</span>
           </button>
         </div>
 
@@ -86,7 +94,7 @@ export function Sidebar() {
             onClick={() => navigate('/friends')}
           >
             <Users size={20} className={styles.navIcon} />
-            <span className={styles.navLabel}>Friends</span>
+            <span className={styles.navLabel}>{t('navigation.friends')}</span>
             {incomingCount > 0 && <span className={styles.navBadge}>{incomingCount}</span>}
           </button>
         </div>
@@ -97,7 +105,7 @@ export function Sidebar() {
             onClick={() => navigate('/music')}
           >
             <Music size={20} className={styles.navIcon} />
-            <span className={styles.navLabel}>Music</span>
+            <span className={styles.navLabel}>{t('navigation.music')}</span>
             {listenerCount > 0 && <span className={styles.navBadge}>{listenerCount}</span>}
           </button>
         </div>
@@ -108,7 +116,7 @@ export function Sidebar() {
             onClick={() => navigate('/movies')}
           >
             <Film size={20} className={styles.navIcon} />
-            <span className={styles.navLabel}>Movies</span>
+            <span className={styles.navLabel}>{t('navigation.movies')}</span>
             {movieListenerCount > 0 && <span className={styles.navBadge}>{movieListenerCount}</span>}
           </button>
         </div>
@@ -118,14 +126,24 @@ export function Sidebar() {
         <div className={styles.section}>
           <button className={styles.navItem} onClick={() => setSettingsOpen(true)}>
             <Settings size={20} className={styles.navIcon} />
-            <span className={styles.navLabel}>Settings</span>
+            <span className={styles.navLabel}>{t('settings.title')}</span>
           </button>
         </div>
 
         <div className={styles.section}>
           <button className={styles.navItem} onClick={() => logout().then(() => navigate('/login'))}>
             <LogOut size={20} className={styles.navIcon} />
-            <span className={styles.navLabel}>Log out</span>
+            <span className={styles.navLabel}>{t('button.logout')}</span>
+          </button>
+        </div>
+
+        <div className={styles.section}>
+          <button className={cn(styles.navItem, styles.languageToggle)} onClick={toggleLanguage}>
+            <Globe size={20} className={styles.navIcon} />
+            <span className={styles.navLabel}>{t('settings.language')}</span>
+            <span className={styles.languageIndicator}>
+              {i18n.language === 'en' ? 'EN' : 'RU'}
+            </span>
           </button>
         </div>
       </div>
@@ -133,8 +151,8 @@ export function Sidebar() {
       {player.hostId && (
         <div className={styles.sessionBadge}>
           <Music size={12} />
-          <span>Listening with friend</span>
-          <button className={styles.leaveSessionBtn} onClick={player.leaveSession}>Leave</button>
+          <span>{t('session.listening_with_friend')}</span>
+          <button className={styles.leaveSessionBtn} onClick={player.leaveSession}>{t('session.leave_session')}</button>
         </div>
       )}
 

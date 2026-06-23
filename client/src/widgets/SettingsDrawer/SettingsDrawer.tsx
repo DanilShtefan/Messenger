@@ -1,15 +1,9 @@
 import { X, Check } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/app/providers/ThemeProvider';
 import styles from './SettingsDrawer.module.css';
 
-const BACKGROUND_PRESETS = [
-  { id: 'none', label: 'None' },
-  { id: 'nature', label: 'Nature' },
-  { id: 'city', label: 'City' },
-  { id: 'abstract', label: 'Abstract' },
-  { id: 'cosmos', label: 'Cosmos' },
-  { id: 'ocean', label: 'Ocean' },
-];
+const BACKGROUND_PRESETS = ['none', 'nature', 'city', 'abstract', 'cosmos', 'ocean'];
 
 interface SettingsDrawerProps {
   open: boolean;
@@ -17,6 +11,7 @@ interface SettingsDrawerProps {
 }
 
 export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
+  const { t } = useTranslation('common');
   const { theme, toggleTheme, background, setBackground } = useTheme();
 
   if (!open) return null;
@@ -26,16 +21,16 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
       <div className={styles.backdrop} onClick={onClose} />
       <div className={styles.drawer}>
         <div className={styles.header}>
-          <h2 className={styles.title}>Settings</h2>
+          <h2 className={styles.title}>{t('settings.title')}</h2>
           <button className={styles.closeBtn} onClick={onClose} type="button" aria-label="Close settings">
             <X size={20} />
           </button>
         </div>
         <div className={styles.content}>
           <div className={styles.section}>
-            <span className={styles.sectionTitle}>Appearance</span>
+            <span className={styles.sectionTitle}>{t('settings.appearance')}</span>
             <div className={styles.row}>
-              <span className={styles.label}>Dark theme</span>
+              <span className={styles.label}>{t('settings.dark_theme')}</span>
               <button
                 className={styles.toggle}
                 data-active={theme === 'dark'}
@@ -49,26 +44,27 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
           </div>
 
           <div className={styles.section}>
-            <span className={styles.sectionTitle}>Background</span>
+            <span className={styles.sectionTitle}>{t('settings.background')}</span>
             <div className={styles.grid}>
-              {BACKGROUND_PRESETS.map((bg) => {
-                const thumb = bg.id === 'none' ? null : `/backgrounds/thumbs/dark/${bg.id}.jpg`;
+              {BACKGROUND_PRESETS.map((bgId) => {
+                const thumb = bgId === 'none' ? null : `/backgrounds/thumbs/dark/${bgId}.jpg`;
+                const label = t('settings.backgrounds.' + bgId);
                 return (
                   <button
-                    key={bg.id}
-                    className={`${styles.card} ${background === bg.id ? styles.cardActive : ''}`}
-                    onClick={() => setBackground(bg.id)}
+                    key={bgId}
+                    className={`${styles.card} ${background === bgId ? styles.cardActive : ''}`}
+                    onClick={() => setBackground(bgId)}
                     type="button"
-                    title={bg.label}
+                    title={label}
                   >
                     {thumb ? (
-                      <img src={thumb} alt={bg.label} className={styles.cardPreview} loading="lazy" decoding="async" />
+                      <img src={thumb} alt={label} className={styles.cardPreview} loading="lazy" decoding="async" />
                     ) : (
-                      <div className={styles.cardPreview + ' ' + styles.cardNone}>None</div>
+                      <div className={styles.cardPreview + ' ' + styles.cardNone}>{t('settings.backgrounds.none')}</div>
                     )}
                     <span className={styles.cardLabel}>
-                      {background === bg.id && <Check size={10} style={{ marginRight: 2 }} />}
-                      {bg.label}
+                      {background === bgId && <Check size={10} style={{ marginRight: 2 }} />}
+                      {label}
                     </span>
                   </button>
                 );

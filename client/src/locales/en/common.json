@@ -1,0 +1,52 @@
+{
+  "app": {
+    "title": "Messenger",
+    "loading": "Loading...",
+    "error": "Error",
+    "retry": "Retry"
+  },
+  "button": {
+    "login": "Log in",
+    "logout": "Log out",
+    "register": "Register",
+    "send": "Send",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "edit": "Edit",
+    "save": "Save",
+    "delete": "Delete"
+  },
+  "navigation": {
+    "chats": "Chats",
+    "friends": "Friends",
+    "music": "Music",
+    "movies": "Movies",
+    "profile": "Profile"
+  },
+  "settings": {
+    "theme": "Theme",
+    "language": "Language",
+    "notifications": "Notifications",
+    "account": "Account",
+    "privacy": "Privacy"
+  },
+  "auth": {
+    "login": {
+      "title": "Sign in to your account",
+      "email": "Email",
+      "password": "Password",
+      "remember": "Remember me",
+      "forgot": "Forgot password?",
+      "no_account": "Don\u2019t have an account?",
+      "sign_up": "Sign up"
+    },
+    "register": {
+      "title": "Create your account",
+      "name": "Full name",
+      "email": "Email",
+      "password": "Password",
+      "confirm": "Confirm password",
+      "terms": "I agree to the Terms and Privacy Policy"
+    }
+  }
+}

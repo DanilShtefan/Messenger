@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Sidebar } from '@/widgets/Sidebar/Sidebar';
 import { ChatWindow } from '@/widgets/ChatWindow/ChatWindow';
 import { ErrorBoundary } from '@/app/providers/ErrorBoundary';
@@ -9,6 +10,7 @@ import { useAppSelector } from '@/app/hooks';
 import styles from './ChatDialogPage.module.css';
 
 export function ChatDialogPage() {
+  const { t } = useTranslation('common');
   const { dialogId } = useParams();
   const { chats } = useFetchChats();
   const currentUserId = useAppSelector((s) => s.user.currentUser?.id);
@@ -33,7 +35,7 @@ export function ChatDialogPage() {
 
   const participant = dialog.participant;
   const isMe = participant.id === currentUserId;
-  const participantName = isMe ? 'Saved Messages' : participant.displayName;
+  const participantName = isMe ? t('saved_messages') : participant.displayName;
   const participantAvatar = participant.avatarUrl ?? null;
 
   return (
