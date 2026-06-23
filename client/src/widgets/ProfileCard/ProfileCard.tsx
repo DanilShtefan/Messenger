@@ -15,7 +15,7 @@ import { cn } from '@/shared/lib/helpers';
 import { useMusicPlayer } from '@/shared/lib/MusicPlayerContext';
 import { useMoviePlayer } from '@/shared/lib/MoviePlayerContext';
 import { Avatar, Button, Input, Skeleton } from '@/shared/ui';
-import type { User, UserProfile } from '@/shared/types';
+import type { Post, User, UserProfile } from '@/shared/types';
 import styles from './ProfileCard.module.css';
 
 interface ProfileCardProps {
@@ -123,6 +123,20 @@ export function ProfileCard({ userId }: ProfileCardProps) {
     try {
       const { isFollowing } = await followApi.toggleFollow(userId);
       setProfile({ ...profile, isFollowing });
+      if (!isFollowing) {
+        queryClient.setQueryData(['feed'], (old: any) => {
+          if (!old) return old;
+          return {
+            ...old,
+            pages: old.pages.map((page: any) => ({
+              ...page,
+              posts: page.posts.filter((p: Post) => p.authorId !== userId),
+            })),
+          };
+        });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ['feed'] });
+      }
     } catch {} finally {
       setFollowLoading(false);
     }
