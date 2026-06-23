@@ -9,17 +9,31 @@ import styles from './MoviesPage.module.css';
 export function MoviesPage() {
   const { t } = useTranslation('common');
   const [query, setQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [results, setResults] = useState<IaMovie[]>([]);
   const [loading, setLoading] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [urlLoading, setUrlLoading] = useState(false);
   const player = useMoviePlayer();
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    setLoading(true);
-    moviesApi.search(query.trim()).then(setResults).finally(() => setLoading(false));
+    const timer = setTimeout(() => setDebouncedQuery(query), 300);
+    return () => clearTimeout(timer);
   }, [query]);
+
+  useEffect(() => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    setLoading(true);
+    moviesApi.search(debouncedQuery.trim(), controller.signal)
+      .then(setResults)
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [debouncedQuery]);
 
   // Resolve video URL when currentMovie changes
   useEffect(() => {

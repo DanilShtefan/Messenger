@@ -70,7 +70,7 @@ function fetchJson(url: string): Promise<any> {
 }
 
 function fetchIaMovies(query: string, sort: string, rows: number): Promise<any[]> {
-  const q = query ? `AND+title:(${encodeURIComponent(query)})` : '';
+  const q = query ? `+AND+title:(${encodeURIComponent(query)})` : '';
   const url = `http://archive.org/advancedsearch.php?q=collection:feature_films+AND+mediatype:movies${q}&fl[]=identifier,title,description,avg_rating,downloads&sort[]=${sort.replace(/\+/g, '%20')}&rows=${rows}&output=json`;
   return fetchJson(url).then((d) => d.response?.docs ?? []);
 }

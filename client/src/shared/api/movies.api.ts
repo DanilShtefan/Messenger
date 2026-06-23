@@ -17,8 +17,8 @@ async function fetchVideoUrl(identifier: string): Promise<string | null> {
 }
 
 export const moviesApi = {
-  search: async (query: string): Promise<IaMovie[]> => {
-    const res = await fetch(`/api/movies/search?q=${encodeURIComponent(query)}`);
+  search: async (query: string, signal?: AbortSignal): Promise<IaMovie[]> => {
+    const res = await fetch(`/api/movies/search?q=${encodeURIComponent(query)}`, { signal });
     const data = await res.json();
     return data.results ?? [];
   },

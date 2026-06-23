@@ -18,6 +18,12 @@ export const MessagesTab = memo(function MessagesTab() {
   const currentUserId = useAppSelector((s) => s.user.currentUser?.id);
   const { isOnline } = useOnlineStatus();
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   useEffect(() => {
     const socket = connectSocket();
@@ -46,10 +52,10 @@ export const MessagesTab = memo(function MessagesTab() {
   }, [chats]);
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return chats;
-    const q = search.toLowerCase();
+    if (!debouncedSearch.trim()) return chats;
+    const q = debouncedSearch.toLowerCase();
     return chats.filter((c) => c.participant?.displayName.toLowerCase().includes(q));
-  }, [chats, search]);
+  }, [chats, debouncedSearch]);
 
   const list = useMemo(() => {
     if (isLoading) {
