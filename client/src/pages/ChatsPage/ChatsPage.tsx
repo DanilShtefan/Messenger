@@ -1,4 +1,5 @@
 import { Sidebar } from '@/widgets/Sidebar/Sidebar';
+import { MobileNav } from '@/widgets/MobileNav/MobileNav';
 import { MessagesTab } from '@/widgets/Sidebar/MessagesTab';
 import { ErrorBoundary } from '@/app/providers/ErrorBoundary';
 import { BackgroundLayer } from '@/shared/ui/BackgroundLayer/BackgroundLayer';
@@ -18,6 +19,7 @@ export function ChatsPage() {
           </div>
         </ErrorBoundary>
       </div>
+      <MobileNav />
     </div>
   );
 }

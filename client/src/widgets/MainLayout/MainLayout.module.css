@@ -4,6 +4,12 @@
   overflow: hidden;
 }
 
+@media (max-width: 767px) {
+  .layout {
+    height: 100dvh;
+  }
+}
+
 .content {
   flex: 1;
   display: flex;
@@ -12,4 +18,10 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
+}
+
+@media (max-width: 767px) {
+  .content {
+    padding-bottom: calc(3.5rem + var(--player-height, 0rem));
+  }
 }

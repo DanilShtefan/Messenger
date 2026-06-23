@@ -12,6 +12,18 @@
   padding: 1.5rem 2rem;
 }
 
+@media (max-width: 767px) {
+  .trackList {
+    padding: 1rem;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .trackList {
+    padding: 1.25rem 1.5rem;
+  }
+}
+
 .heading {
   margin: 0 0 1rem;
   font-size: 1.25rem;

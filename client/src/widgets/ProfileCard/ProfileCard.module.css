@@ -10,6 +10,12 @@
   text-align: center;
 }
 
+@media (max-width: 767px) {
+  .card {
+    padding: 1.5rem 1rem 1rem;
+  }
+}
+
 .avatarWrap {
   position: relative;
   margin-bottom: 0.25rem;

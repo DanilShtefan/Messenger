@@ -5,6 +5,18 @@
   max-width: 48rem;
 }
 
+@media (max-width: 767px) {
+  .page {
+    padding: 1rem;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .page {
+    padding: 1.25rem 1.5rem;
+  }
+}
+
 .section {
   margin-bottom: 2rem;
 }

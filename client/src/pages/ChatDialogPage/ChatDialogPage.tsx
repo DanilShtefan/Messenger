@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Sidebar } from '@/widgets/Sidebar/Sidebar';
+import { MobileNav } from '@/widgets/MobileNav/MobileNav';
 import { ChatWindow } from '@/widgets/ChatWindow/ChatWindow';
 import { ErrorBoundary } from '@/app/providers/ErrorBoundary';
 import { BackgroundLayer } from '@/shared/ui/BackgroundLayer/BackgroundLayer';
@@ -29,6 +30,7 @@ export function ChatDialogPage() {
         <div className={styles.content}>
           <BackgroundLayer />
         </div>
+        <MobileNav />
       </div>
     );
   }
@@ -53,6 +55,7 @@ export function ChatDialogPage() {
           />
         </ErrorBoundary>
       </div>
+      <MobileNav />
     </div>
   );
 }

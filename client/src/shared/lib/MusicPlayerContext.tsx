@@ -36,6 +36,7 @@ interface MusicPlayerContextValue {
   hostId: string | null;
   joinSession: (hostId: string) => void;
   leaveSession: () => void;
+  stop: () => void;
 }
 
 const MusicPlayerContext = createContext<MusicPlayerContextValue | null>(null);
@@ -309,6 +310,18 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
     connectSocket().emit('music:leave');
   }, []);
 
+  const stop = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    setCurrentTrack(null);
+    setPlaying(false);
+    setProgress(0);
+    trackRef.current = null;
+    connectSocket().emit('music:stop');
+  }, []);
+
   const setTracks = useCallback((next: DeezerTrack[]) => setTracksState(next), []);
 
   const value = useMemo(() => ({
@@ -328,10 +341,11 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
     hostId,
     joinSession,
     leaveSession,
+    stop,
   }), [
     currentTrack, playing, progress, duration, volume, tracks,
     hostId, setTracks, play, togglePlay, seek, setVolume,
-    nextTrack, prevTrack, joinSession, leaveSession,
+    nextTrack, prevTrack, joinSession, leaveSession, stop,
   ]);
 
   return (

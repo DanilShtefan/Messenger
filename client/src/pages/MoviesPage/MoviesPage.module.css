@@ -10,6 +10,18 @@
   padding: 1.5rem 2rem 0;
 }
 
+@media (max-width: 767px) {
+  .header {
+    padding: 1rem 1rem 0;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .header {
+    padding: 1.25rem 1.5rem 0;
+  }
+}
+
 .heading {
   margin: 0 0 1rem;
   font-size: 1.25rem;
@@ -70,6 +82,20 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
   gap: 1rem;
+}
+
+@media (max-width: 767px) {
+  .grid {
+    padding: 0 1rem 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+    gap: 0.75rem;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .grid {
+    padding: 0 1.5rem 1.5rem;
+  }
 }
 
 .card {
@@ -189,6 +215,13 @@
   padding: 2rem;
 }
 
+@media (max-width: 767px) {
+  .overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+}
+
 .modal {
   background: var(--color-surface);
   border-radius: 1rem;
@@ -200,12 +233,25 @@
   flex-direction: column;
 }
 
+@media (max-width: 767px) {
+  .modal {
+    max-height: 100vh;
+    border-radius: 0.75rem 0.75rem 0 0;
+  }
+}
+
 .modalHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.5rem;
   gap: 1rem;
+}
+
+@media (max-width: 767px) {
+  .modalHeader {
+    padding: 0.75rem 1rem;
+  }
 }
 
 .modalTitle {
@@ -244,6 +290,12 @@
   color: var(--color-text-secondary);
   max-height: 6rem;
   overflow-y: auto;
+}
+
+@media (max-width: 767px) {
+  .description {
+    padding: 0.75rem 1rem;
+  }
 }
 
 .loaderWrap {

@@ -17,11 +17,14 @@
     "delete": "Удалить"
   },
   "navigation": {
+    "feed": "Новости",
     "chats": "Чаты",
     "friends": "Друзья",
     "music": "Музыка",
     "movies": "Фильмы",
-    "profile": "Профиль"
+    "games": "Игры",
+    "profile": "Профиль",
+    "more": "Ещё"
   },
   "settings": {
     "theme": "Тема",

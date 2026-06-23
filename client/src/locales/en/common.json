@@ -17,11 +17,14 @@
     "delete": "Delete"
   },
   "navigation": {
+    "feed": "Feed",
     "chats": "Chats",
     "friends": "Friends",
     "music": "Music",
     "movies": "Movies",
-    "profile": "Profile"
+    "games": "Games",
+    "profile": "Profile",
+    "more": "More"
   },
   "settings": {
     "theme": "Theme",

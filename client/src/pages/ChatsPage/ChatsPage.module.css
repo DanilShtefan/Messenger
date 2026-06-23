@@ -4,6 +4,12 @@
   overflow: hidden;
 }
 
+@media (max-width: 767px) {
+  .layout {
+    height: 100dvh;
+  }
+}
+
 .content {
   flex: 1;
   position: relative;
@@ -14,4 +20,10 @@
 .chatList {
   height: 100%;
   overflow-y: auto;
+}
+
+@media (max-width: 767px) {
+  .chatList {
+    padding-bottom: calc(3.5rem + var(--player-height, 0rem));
+  }
 }

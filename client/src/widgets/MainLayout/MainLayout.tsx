@@ -1,4 +1,5 @@
 import { Sidebar } from '@/widgets/Sidebar/Sidebar';
+import { MobileNav } from '@/widgets/MobileNav/MobileNav';
 import { ErrorBoundary } from '@/app/providers/ErrorBoundary';
 import { BackgroundLayer } from '@/shared/ui/BackgroundLayer/BackgroundLayer';
 import styles from './MainLayout.module.css';
@@ -20,6 +21,7 @@ export function MainLayout({ children }: MainLayoutProps) {
           {children}
         </ErrorBoundary>
       </div>
+      <MobileNav />
     </div>
   );
 }

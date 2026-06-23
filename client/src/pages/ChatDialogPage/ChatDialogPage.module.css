@@ -4,6 +4,12 @@
   overflow: hidden;
 }
 
+@media (max-width: 767px) {
+  .layout {
+    height: 100dvh;
+  }
+}
+
 .content {
   flex: 1;
   position: relative;

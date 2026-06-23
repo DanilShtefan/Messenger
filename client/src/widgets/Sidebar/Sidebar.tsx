@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { MessageSquare, Music, Film, Users, Settings, LogOut, Play, Pause, SkipBack, SkipForward, Volume2, Globe, Newspaper, Gamepad2 } from 'lucide-react';
+import { MessageSquare, Music, Film, Users, Settings, LogOut, Play, Pause, SkipBack, SkipForward, Volume2, Globe, Newspaper, Gamepad2, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '@/app/hooks';
 import { connectSocket } from '@/shared/lib/socket';
@@ -191,6 +191,9 @@ export function Sidebar() {
           </div>
 
           <div className={styles.miniControls}>
+            <button className={styles.miniBtnClose} onClick={player.stop} aria-label="Close player">
+              <X size={12} />
+            </button>
             <button className={styles.miniBtn} onClick={player.prev}>
               <SkipBack size={14} />
             </button>
