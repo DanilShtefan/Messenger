@@ -3,3 +3,4 @@ export type { Dialog, Participant, CreateDialogRequest, DialogListItem } from '.
 export type { Message, SendMessageRequest, MessagesResponse } from './message';
 export type { ApiError, PaginationParams, ApiResponse, PaginatedResponse } from './api';
 export type { Post, PostsResponse } from './post';
+export type { Comment, CommentsResponse } from './comment';

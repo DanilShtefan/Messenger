@@ -13,6 +13,7 @@ import { chatRoutes } from './routes/chat.routes.js';
 import { messageRoutes } from './routes/message.routes.js';
 import { friendRoutes } from './routes/friend.routes.js';
 import { postRoutes } from './routes/post.routes.js';
+import { commentRoutes } from './routes/comment.routes.js';
 import followRoutes from './routes/follow.routes.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -57,6 +58,7 @@ app.use('/api/chats', chatRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/friends', friendRoutes);
 app.use('/api', postRoutes);
+app.use('/api', commentRoutes);
 app.use('/api/follow', followRoutes);
 
 function fetchJson(url: string): Promise<any> {

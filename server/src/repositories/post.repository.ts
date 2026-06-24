@@ -9,7 +9,7 @@ export const postRepository = {
       ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
       include: {
         author: { select: { id: true, displayName: true, avatarUrl: true } },
-        _count: { select: { likes: true, views: true } },
+        _count: { select: { likes: true, views: true, comments: true } },
         ...(currentUserId
           ? { likes: { where: { userId: currentUserId }, take: 1 } }
           : {}),
@@ -29,6 +29,7 @@ export const postRepository = {
           likeCount: _count.likes,
           likedByMe: currentUserId ? (likes?.length ?? 0) > 0 : false,
           viewsCount: _count.views,
+          commentCount: _count.comments,
           viewersPreview: {
             viewers: views.map((v: any) => v.user),
             totalCount: _count.views,
@@ -53,6 +54,7 @@ export const postRepository = {
       likeCount: 0,
       likedByMe: false,
       viewsCount: 0,
+      commentCount: 0,
       viewersPreview: { viewers: [], totalCount: 0 },
     }));
   },
@@ -98,7 +100,7 @@ export const postRepository = {
       ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
       include: {
         author: { select: { id: true, displayName: true, avatarUrl: true } },
-        _count: { select: { likes: true, views: true } },
+        _count: { select: { likes: true, views: true, comments: true } },
         ...(currentUserId
           ? { likes: { where: { userId: currentUserId }, take: 1 } }
           : {}),
@@ -118,6 +120,7 @@ export const postRepository = {
           likeCount: _count.likes,
           likedByMe: currentUserId ? (likes?.length ?? 0) > 0 : false,
           viewsCount: _count.views,
+          commentCount: _count.comments,
           viewersPreview: {
             viewers: views.map((v: any) => v.user),
             totalCount: _count.views,

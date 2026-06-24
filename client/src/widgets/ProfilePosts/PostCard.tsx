@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Avatar } from '@/shared/ui';
 import { formatPostDate } from '@/shared/lib/helpers';
 import { postsApi } from '@/shared/api/posts.api';
+import { CommentSection } from './CommentSection';
 import type { Post } from '@/shared/types';
 import styles from './ProfilePosts.module.css';
 
@@ -201,6 +202,7 @@ export function PostCard({ post, isOwn, onDeleted, onToggleLike, onView, onEdit 
           <span className={styles.editedBadge}>{t('profile.edited')}</span>
         )}
       </div>
+      <CommentSection postId={post.id} commentCount={post.commentCount} isOwn={isOwn} />
     </div>
   );
 }

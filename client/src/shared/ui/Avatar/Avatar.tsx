@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { cn, getInitials } from '@/shared/lib/helpers';
 import styles from './Avatar.module.css';
 
-type AvatarSize = 'sm' | 'md' | 'lg' | 'xl';
+type AvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
 interface AvatarProps {
   src?: string | null;
@@ -12,6 +12,7 @@ interface AvatarProps {
 }
 
 const sizeMap: Record<AvatarSize, number> = {
+  xs: 24,
   sm: 32,
   md: 40,
   lg: 48,

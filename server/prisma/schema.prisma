@@ -23,11 +23,12 @@ model User {
   refreshTokens RefreshToken[]
   friends       Friend[]      @relation("UserFriends")
   friendOf      Friend[]      @relation("FriendOf")
-  posts         Post[] @relation("UserPosts")
+  posts         Post[]    @relation("UserPosts")
   postLikes     PostLike[]
   postViews     PostView[]
-  followers     Follow[] @relation("Followers")
-  following     Follow[] @relation("Following")
+  comments      Comment[]
+  followers     Follow[]  @relation("Followers")
+  following     Follow[]  @relation("Following")
 
   @@map("users")
 }
@@ -40,12 +41,31 @@ model Post {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  author User   @relation("UserPosts", fields: [authorId], references: [id], onDelete: Cascade)
-  likes  PostLike[]
-  views  PostView[]
+  author   User      @relation("UserPosts", fields: [authorId], references: [id], onDelete: Cascade)
+  likes    PostLike[]
+  views    PostView[]
+  comments Comment[]
 
   @@index([authorId, createdAt])
   @@map("posts")
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  postId    String   @map("post_id")
+  authorId  String   @map("author_id")
+  parentId  String?  @map("parent_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  post   Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies Comment[] @relation("CommentReplies")
+
+  @@index([postId, createdAt])
+  @@index([parentId])
+  @@map("comments")
 }
 
 model PostLike {

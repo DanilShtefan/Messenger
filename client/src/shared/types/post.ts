@@ -13,6 +13,7 @@ export interface Post {
   likeCount: number;
   likedByMe: boolean;
   viewsCount: number;
+  commentCount: number;
   viewersPreview: {
     viewers: Array<{
       id: string;
