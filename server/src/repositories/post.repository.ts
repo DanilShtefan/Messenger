@@ -21,13 +21,23 @@ export const postRepository = {
           },
         },
       },
-    }).then((rows) =>
-      rows.map((r) => {
+    }).then(async (rows) => {
+      const postIds = rows.map((r: any) => r.id);
+      const userViews = currentUserId
+        ? await prisma.postView.findMany({
+            where: { postId: { in: postIds }, userId: currentUserId },
+            select: { postId: true },
+          })
+        : [];
+      const viewedSet = new Set(userViews.map((v: any) => v.postId));
+
+      return rows.map((r) => {
         const { _count, likes, views, ...rest } = r as any;
         return {
           ...rest,
           likeCount: _count.likes,
           likedByMe: currentUserId ? (likes?.length ?? 0) > 0 : false,
+          viewedByMe: viewedSet.has(r.id),
           viewsCount: _count.views,
           commentCount: _count.comments,
           viewersPreview: {
@@ -35,8 +45,8 @@ export const postRepository = {
             totalCount: _count.views,
           },
         };
-      }),
-    );
+      });
+    });
   },
 
   findById(id: string) {
@@ -53,6 +63,7 @@ export const postRepository = {
       ...p,
       likeCount: 0,
       likedByMe: false,
+      viewedByMe: false,
       viewsCount: 0,
       commentCount: 0,
       viewersPreview: { viewers: [], totalCount: 0 },
@@ -112,13 +123,23 @@ export const postRepository = {
           },
         },
       },
-    }).then((rows) =>
-      rows.map((r) => {
+    }).then(async (rows) => {
+      const postIds = rows.map((r: any) => r.id);
+      const userViews = currentUserId
+        ? await prisma.postView.findMany({
+            where: { postId: { in: postIds }, userId: currentUserId },
+            select: { postId: true },
+          })
+        : [];
+      const viewedSet = new Set(userViews.map((v: any) => v.postId));
+
+      return rows.map((r) => {
         const { _count, likes, views, ...rest } = r as any;
         return {
           ...rest,
           likeCount: _count.likes,
           likedByMe: currentUserId ? (likes?.length ?? 0) > 0 : false,
+          viewedByMe: viewedSet.has(r.id),
           viewsCount: _count.views,
           commentCount: _count.comments,
           viewersPreview: {
@@ -126,7 +147,7 @@ export const postRepository = {
             totalCount: _count.views,
           },
         };
-      }),
-    );
+      });
+    });
   },
 };

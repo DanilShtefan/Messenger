@@ -12,6 +12,7 @@ export interface Post {
   };
   likeCount: number;
   likedByMe: boolean;
+  viewedByMe: boolean;
   viewsCount: number;
   commentCount: number;
   viewersPreview: {

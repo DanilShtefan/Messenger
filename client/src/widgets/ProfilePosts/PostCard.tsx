@@ -31,7 +31,7 @@ export function PostCard({ post, isOwn, onDeleted, onToggleLike, onView, onEdit 
   const imageInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (viewSent.current || isOwn) return;
+    if (viewSent.current || isOwn || post.viewedByMe) return;
     const el = cardRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(
