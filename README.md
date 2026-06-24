@@ -2,7 +2,44 @@
 
 Full-stack real-time messaging app with music streaming, movie catalog, and live track sync.
 
-Built with **React + Express + Socket.IO + PostgreSQL**.
+## Tech Stack
+
+### Frontend
+| Library | Purpose |
+|---|---|
+| **React 19** | UI framework |
+| **TypeScript** | Type safety |
+| **Vite 6** | Build tool & dev server |
+| **TanStack React Query** | Server state management, caching, data fetching |
+| **Redux Toolkit** | Client state management (auth, user) |
+| **React Router DOM v7** | Client-side routing |
+| **Axios** | HTTP client |
+| **Socket.IO Client** | Real-time WebSocket communication |
+| **i18next** | Internationalization (EN / RU) |
+| **Lucide React** | Icon library |
+| **Zod** | Schema validation |
+| **CSS Modules** | Scoped styling |
+| **jwt-decode** | JWT token parsing |
+
+### Backend
+| Library | Purpose |
+|---|---|
+| **Node.js** | Runtime |
+| **Express 4** | HTTP server & routing |
+| **TypeScript** | Type safety |
+| **Prisma ORM** | Database ORM & migrations |
+| **PostgreSQL** | Database |
+| **Socket.IO** | Real-time WebSocket server |
+| **JWT (jsonwebtoken)** | Authentication tokens |
+| **bcrypt** | Password hashing |
+| **Multer** | File uploads |
+| **express-rate-limit** | Rate limiting |
+| **Zod** | Input validation |
+| **tsx** | TypeScript execution for development |
+
+### DevOps & Tools
+- **Concurrently** — monorepo script runner
+- **Render** — deployment platform
 
 ## Features
 
