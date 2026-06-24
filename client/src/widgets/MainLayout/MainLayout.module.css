@@ -24,3 +24,9 @@
     padding-bottom: calc(3.5rem + var(--player-height, 0rem));
   }
 }
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .content {
+    padding-bottom: calc(var(--player-height, 0rem));
+  }
+}
