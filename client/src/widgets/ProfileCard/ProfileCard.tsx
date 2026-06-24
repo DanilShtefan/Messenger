@@ -207,7 +207,7 @@ export function ProfileCard({ userId }: ProfileCardProps) {
 
   return (
     <div className={styles.card}>
-      <div className={cn(styles.avatarWrap, isEditing && styles.avatarEditable)} onClick={() => document.getElementById('avatarInput')?.click()}>
+      <div className={cn(styles.avatarWrap, isEditing && styles.avatarEditable)} onClick={() => { if (isEditing) document.getElementById('avatarInput')?.click(); }}>
         <Avatar src={profile.avatarUrl} name={profile.displayName} size="xl" />
         {online && <span className={styles.onlineDot} />}
         {isEditing && (
