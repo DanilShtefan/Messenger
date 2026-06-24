@@ -84,6 +84,8 @@ export function initSocket(httpServer: HttpServer): Server {
       io.emit('user:online', userId);
     }
 
+    socket.emit('online:list', Array.from(onlineUsers));
+
     // Send current listener count on (re)connect
     const existingSession = listeningSessions.get(userId);
     if (existingSession) {

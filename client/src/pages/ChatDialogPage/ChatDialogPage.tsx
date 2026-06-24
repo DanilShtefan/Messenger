@@ -35,10 +35,15 @@ export function ChatDialogPage() {
     );
   }
 
+  const isGroup = !!dialog.name;
   const participant = dialog.participant;
-  const isMe = participant.id === currentUserId;
-  const participantName = isMe ? t('saved_messages') : participant.displayName;
-  const participantAvatar = participant.avatarUrl ?? null;
+  const isMe = participant?.id === currentUserId;
+  const participantName = isGroup
+    ? (dialog.name ?? 'Group')
+    : isMe
+      ? t('saved_messages')
+      : (participant?.displayName ?? 'Unknown');
+  const participantAvatar = participant?.avatarUrl ?? null;
 
   return (
     <div className={styles.layout}>
@@ -52,6 +57,8 @@ export function ChatDialogPage() {
             dialogId={dialogId}
             participantName={participantName}
             participantAvatar={participantAvatar}
+            isGroup={isGroup}
+            groupName={dialog.name}
           />
         </ErrorBoundary>
       </div>

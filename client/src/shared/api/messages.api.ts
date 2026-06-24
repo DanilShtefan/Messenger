@@ -12,4 +12,7 @@ export const messagesApi = {
 
   update: (messageId: string, content: string) =>
     apiClient.put<Message>(`/messages/${messageId}`, { content }).then((r) => r.data),
+
+  react: (messageId: string, emoji: string) =>
+    apiClient.post<Message>(`/messages/${messageId}/reactions`, { emoji }).then((r) => r.data),
 };

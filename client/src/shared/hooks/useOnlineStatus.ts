@@ -1,6 +1,14 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { connectSocket } from '@/shared/lib/socket';
 import { jwtDecode } from 'jwt-decode';
+
+let onlineUsers = new Set<string>();
+let initialized = false;
+const listeners = new Set<() => void>();
+
+function notify() {
+  listeners.forEach((fn) => fn());
+}
 
 function getCurrentUserId(): string | null {
   try {
@@ -13,49 +21,61 @@ function getCurrentUserId(): string | null {
   }
 }
 
+function init() {
+  if (initialized) return;
+  initialized = true;
+
+  const socket = connectSocket();
+  const currentUserId = getCurrentUserId();
+
+  if (currentUserId && socket.connected) {
+    onlineUsers = new Set(onlineUsers).add(currentUserId);
+    notify();
+  }
+
+  function handleConnect() {
+    if (currentUserId) {
+      onlineUsers = new Set(onlineUsers).add(currentUserId);
+      notify();
+    }
+  }
+
+  function handleOnlineList(ids: string[]) {
+    onlineUsers = new Set(ids);
+    notify();
+  }
+
+  function handleOnline(userId: string) {
+    onlineUsers = new Set(onlineUsers).add(userId);
+    notify();
+  }
+
+  function handleOffline(userId: string) {
+    const next = new Set(onlineUsers);
+    next.delete(userId);
+    onlineUsers = next;
+    notify();
+  }
+
+  socket.on('connect', handleConnect);
+  socket.on('online:list', handleOnlineList);
+  socket.on('user:online', handleOnline);
+  socket.on('user:offline', handleOffline);
+}
+
 export function useOnlineStatus() {
-  const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
-  const ref = useRef(onlineUsers);
-  ref.current = onlineUsers;
+  const [, forceUpdate] = useState(0);
 
   useEffect(() => {
-    const socket = connectSocket();
-    const currentUserId = getCurrentUserId();
-
-    if (currentUserId && socket.connected) {
-      setOnlineUsers((prev) => new Set(prev).add(currentUserId));
-    }
-
-    function handleConnect() {
-      if (currentUserId) {
-        setOnlineUsers((prev) => new Set(prev).add(currentUserId));
-      }
-    }
-
-    function handleOnline(userId: string) {
-      setOnlineUsers((prev) => new Set(prev).add(userId));
-    }
-
-    function handleOffline(userId: string) {
-      setOnlineUsers((prev) => {
-        const next = new Set(prev);
-        next.delete(userId);
-        return next;
-      });
-    }
-
-    socket.on('connect', handleConnect);
-    socket.on('user:online', handleOnline);
-    socket.on('user:offline', handleOffline);
-
+    init();
+    const fn = () => forceUpdate((n) => n + 1);
+    listeners.add(fn);
     return () => {
-      socket.off('connect', handleConnect);
-      socket.off('user:online', handleOnline);
-      socket.off('user:offline', handleOffline);
+      listeners.delete(fn);
     };
   }, []);
 
-  const isOnline = (userId: string) => ref.current.has(userId);
+  const isOnline = (userId: string) => onlineUsers.has(userId);
 
   return { onlineUsers, isOnline };
 }

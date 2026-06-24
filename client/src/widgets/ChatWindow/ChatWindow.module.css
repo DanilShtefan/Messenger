@@ -26,11 +26,56 @@
   }
 }
 
+.headerInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+  text-align: left;
+}
+
+.headerInfo:disabled {
+  cursor: default;
+}
+
+.headerText {
+  display: flex;
+  flex-direction: column;
+}
+
+.avatarWrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.onlineDot {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 50%;
+  background: #22c55e;
+  border: 2px solid var(--color-surface);
+}
+
 .name {
   font-weight: 600;
   font-size: 0.9375rem;
   color: var(--color-text-primary);
-  flex: 1;
+}
+
+.memberCount {
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary);
+  margin-top: 0.0625rem;
 }
 
 .backBtn {
@@ -85,18 +130,53 @@
   text-decoration: underline;
 }
 
-.message {
+.messageRow {
   display: flex;
   align-items: flex-end;
-  max-width: 70%;
+  gap: 0.375rem;
 }
 
 .mine {
-  align-self: flex-end;
+  flex-direction: row-reverse;
 }
 
 .theirs {
-  align-self: flex-start;
+  flex-direction: row;
+}
+
+.message {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.msgAvatar {
+  flex-shrink: 0;
+  align-self: flex-end;
+  margin-bottom: 0.125rem;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 50%;
+  position: relative;
+}
+
+.msgContent {
+  display: flex;
+  flex-direction: column;
+  max-width: 70%;
+}
+
+.msgSenderName {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  margin-left: 0.5rem;
+  margin-bottom: 0.125rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .bubble {
@@ -261,4 +341,278 @@
   font-style: italic;
   opacity: 0.7;
   margin-right: 0.25rem;
+}
+
+/* Reactions */
+.reactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.125rem;
+  margin-top: 0.125rem;
+  margin-bottom: 0.125rem;
+  width: 100%;
+}
+
+.mine .reactions {
+  justify-content: flex-end;
+  padding-right: 0.5rem;
+}
+
+.theirs .reactions {
+  justify-content: flex-start;
+  padding-left: 0.5rem;
+}
+
+.reactionBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
+  font-size: 0.6875rem;
+  padding: 0.0625rem 0.3125rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.reactionBadge:hover {
+  background: var(--color-surface-alt);
+  transform: scale(1.05);
+}
+
+.reactionActive {
+  background: rgba(99, 102, 241, 0.12);
+  border-color: var(--color-accent);
+}
+
+/* Forwarded header */
+.forwardedHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 0.7;
+  margin-bottom: 0.125rem;
+  padding-bottom: 0.125rem;
+  border-bottom: 1px solid;
+  border-color: inherit;
+  opacity: 0.6;
+}
+
+.forwardIcon {
+  flex-shrink: 0;
+}
+
+.forwardedName {
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  font-size: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: transparent;
+  transition: text-decoration-color 0.15s;
+}
+
+.forwardedName:hover {
+  text-decoration-color: currentColor;
+}
+
+/* Message action buttons */
+.msgActions {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+  flex-shrink: 0;
+  align-self: flex-end;
+}
+
+.msgActionsInner {
+  display: flex;
+  gap: 0.125rem;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.messageRow:hover .msgActionsInner {
+  opacity: 1;
+}
+
+.msgActionBtn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s, background 0.15s;
+}
+
+.msgActionBtn:hover {
+  color: var(--color-text-primary);
+  background: var(--color-surface-alt);
+}
+
+/* Emoji picker */
+.emojiPicker {
+  display: flex;
+  gap: 0.1875rem;
+  padding: 0.25rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
+
+.emojiOption {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.125rem;
+  border-radius: 0.25rem;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.emojiOption:hover {
+  background: var(--color-surface-alt);
+  transform: scale(1.2);
+}
+
+.emojiActive {
+  background: rgba(99, 102, 241, 0.2);
+}
+
+/* Participants modal */
+.participantsModal {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  max-width: 340px;
+  width: 90%;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.participantsModalHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.participantsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  overflow-y: auto;
+}
+
+.participantRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.625rem;
+  background: transparent;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: background 0.15s;
+  width: 100%;
+  text-align: left;
+}
+
+.participantRow:hover {
+  background: var(--color-surface-alt);
+}
+
+.participantName {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Forward modal */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  max-width: 360px;
+  width: 90%;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.modalTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.forwardList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  overflow-y: auto;
+  max-height: 50vh;
+}
+
+.forwardItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  background: transparent;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: background 0.15s;
+  width: 100%;
+  text-align: left;
+}
+
+.forwardItem:hover {
+  background: var(--color-surface-alt);
 }

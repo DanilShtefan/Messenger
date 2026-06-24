@@ -84,6 +84,8 @@ model RefreshToken {
 
 model Dialog {
   id        String       @id @default(uuid())
+  name      String?
+  avatarUrl String?      @map("avatar_url")
   createdAt DateTime     @default(now()) @map("created_at")
   updatedAt DateTime     @updatedAt @map("updated_at")
 
@@ -107,10 +109,12 @@ model Participant {
 }
 
 model Message {
-  id        String   @id @default(uuid())
-  content   String
-  senderId  String   @map("sender_id")
-  dialogId  String   @map("dialog_id")
+  id            String   @id @default(uuid())
+  content       String
+  senderId      String   @map("sender_id")
+  dialogId      String   @map("dialog_id")
+  reactions     Json?    @default("{}")
+  forwardedFrom Json?    @map("forwarded_from")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 

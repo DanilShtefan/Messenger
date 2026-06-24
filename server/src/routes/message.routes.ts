@@ -7,3 +7,4 @@ export const messageRoutes = Router();
 messageRoutes.get('/:dialogId', authenticate, messageController.getByDialog);
 messageRoutes.post('/', authenticate, messageController.create);
 messageRoutes.put('/:messageId', authenticate, messageController.update);
+messageRoutes.post('/:messageId/reactions', authenticate, messageController.react);

@@ -75,10 +75,27 @@ export function useFetchMessages(dialogId: string): UseFetchMessagesReturn {
     });
   }, [queryClient, queryKey]);
 
+  const reactMessage = useCallback((msg: Message) => {
+    queryClient.setQueryData(queryKey, (old: any) => {
+      if (!old) return old;
+      return {
+        ...old,
+        pages: old.pages.map((page: any) => ({
+          ...page,
+          messages: page.messages.map((m: Message) =>
+            m.id === msg.id ? { ...m, reactions: msg.reactions } : m,
+          ),
+        })),
+      };
+    });
+  }, [queryClient, queryKey]);
+
   const addMessageRef = useRef(addMessage);
   addMessageRef.current = addMessage;
   const editMessageRef = useRef(editMessage);
   editMessageRef.current = editMessage;
+  const reactMessageRef = useRef(reactMessage);
+  reactMessageRef.current = reactMessage;
   const userIdRef = useRef(currentUserId);
   userIdRef.current = currentUserId;
 
@@ -96,12 +113,19 @@ export function useFetchMessages(dialogId: string): UseFetchMessagesReturn {
         editMessageRef.current(msg.id, msg.content, msg.updatedAt);
       }
     };
+    const reactHandler = (msg: Message) => {
+      if (msg.dialogId === dialogId) {
+        reactMessageRef.current(msg);
+      }
+    };
     socket.on('message:new', newHandler);
     socket.on('message:updated', updateHandler);
+    socket.on('message:reacted', reactHandler);
     return () => {
       socket.emit('leave:dialog', dialogId);
       socket.off('message:new', newHandler);
       socket.off('message:updated', updateHandler);
+      socket.off('message:reacted', reactHandler);
     };
   }, [dialogId]);
 

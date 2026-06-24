@@ -3,6 +3,8 @@ import type { Message } from './message';
 
 export interface Dialog {
   id: string;
+  name?: string | null;
+  avatarUrl?: string | null;
   createdAt: string;
   participants: Participant[];
   lastMessage?: Message;
@@ -18,11 +20,14 @@ export interface Participant {
 
 export interface CreateDialogRequest {
   participantIds: string[];
+  name?: string;
 }
 
 export interface DialogListItem {
   id: string;
-  participant: User;
+  name?: string | null;
+  participant: User | null;
+  participants?: Participant[];
   lastMessage: Message | null;
   unreadCount: number;
   updatedAt: string;

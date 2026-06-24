@@ -89,16 +89,37 @@ export function useFetchChats(): UseFetchChatsReturn {
       }));
     };
 
+    const handleParticipantAdded = () => {
+      if (userIdRef.current) {
+        queryClient.invalidateQueries({ queryKey: CHATS_KEY });
+      }
+    };
+
+    const handleParticipantRemoved = (data: { dialogId: string; userId: string }) => {
+      if (data.userId === userIdRef.current) {
+        queryClient.invalidateQueries({ queryKey: CHATS_KEY });
+      } else {
+        updateChat(data.dialogId, (chat) => ({
+          ...chat,
+          participants: chat.participants?.filter((p) => p.userId !== data.userId),
+        }));
+      }
+    };
+
     socket.on('message:new', handleMessage);
     socket.on('message:updated', handleMessageUpdated);
     socket.on('dialog:created', handleDialogCreated);
     socket.on('dialog:read', handleDialogRead);
+    socket.on('participant:added', handleParticipantAdded);
+    socket.on('participant:removed', handleParticipantRemoved);
 
     return () => {
       socket.off('message:new', handleMessage);
       socket.off('message:updated', handleMessageUpdated);
       socket.off('dialog:created', handleDialogCreated);
       socket.off('dialog:read', handleDialogRead);
+      socket.off('participant:added', handleParticipantAdded);
+      socket.off('participant:removed', handleParticipantRemoved);
     };
   }, [queryClient, updateChat]);
 

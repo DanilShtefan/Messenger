@@ -1,6 +1,8 @@
-import { memo, useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Users } from 'lucide-react';
+import { GroupCreateModal } from './GroupCreateModal';
 import { useFetchChats } from '@/shared/hooks/useFetchChats';
 import { useOnlineStatus } from '@/shared/hooks/useOnlineStatus';
 import { useAppSelector } from '@/app/hooks';
@@ -8,7 +10,7 @@ import { Avatar, Skeleton } from '@/shared/ui';
 import { formatDate, cn } from '@/shared/lib/helpers';
 import styles from './Sidebar.module.css';
 
-export const MessagesTab = memo(function MessagesTab() {
+export function MessagesTab() {
   const { t } = useTranslation('chat');
   const { dialogId } = useParams();
   const navigate = useNavigate();
@@ -17,6 +19,7 @@ export const MessagesTab = memo(function MessagesTab() {
   const { isOnline } = useOnlineStatus();
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [showGroupModal, setShowGroupModal] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 300);
@@ -26,7 +29,10 @@ export const MessagesTab = memo(function MessagesTab() {
   const filtered = useMemo(() => {
     if (!debouncedSearch.trim()) return chats;
     const q = debouncedSearch.toLowerCase();
-    return chats.filter((c) => c.participant?.displayName.toLowerCase().includes(q));
+    return chats.filter((c) => {
+      const name = c.name || c.participant?.displayName || '';
+      return name.toLowerCase().includes(q);
+    });
   }, [chats, debouncedSearch]);
 
   const list = useMemo(() => {
@@ -48,9 +54,11 @@ export const MessagesTab = memo(function MessagesTab() {
 
     return filtered.map((chat) => {
       const participant = chat.participant;
-      if (!participant) return null;
       const isActive = chat.id === dialogId;
-      const isMe = participant.id === currentUserId;
+      const chatName = chat.name || participant?.displayName || 'Unknown';
+      const avatarUrl = participant?.avatarUrl ?? null;
+      const isMe = participant?.id === currentUserId;
+      const isGroup = !!chat.name;
 
       return (
         <button
@@ -60,16 +68,16 @@ export const MessagesTab = memo(function MessagesTab() {
         >
           <div className={styles.avatarWrap}>
             <Avatar
-              src={participant.avatarUrl}
-              name={participant.displayName}
+              src={avatarUrl}
+              name={chatName}
               size="md"
             />
-            {isOnline(participant.id) && <span className={styles.onlineDot} />}
+            {!isGroup && participant && isOnline(participant.id) && <span className={styles.onlineDot} />}
           </div>
           <div className={styles.info}>
             <div className={styles.top}>
               <span className={styles.name}>
-                {isMe ? 'Saved Messages' : participant.displayName}
+                {isMe && !isGroup ? 'Saved Messages' : chatName}
               </span>
               {chat.lastMessage && (
                 <span className={styles.time}>
@@ -93,6 +101,13 @@ export const MessagesTab = memo(function MessagesTab() {
 
   return (
     <>
+      <div className={styles.groupHeader}>
+        <button className={styles.createGroupBtn} onClick={() => setShowGroupModal(true)}>
+          <Users size={16} />
+          <span>{t('create_group')}</span>
+        </button>
+      </div>
+
       <div className={styles.search}>
         <input
           className={styles.searchInput}
@@ -103,6 +118,10 @@ export const MessagesTab = memo(function MessagesTab() {
       </div>
 
       <div className={styles.list}>{list}</div>
+
+      {showGroupModal && (
+        <GroupCreateModal onClose={() => setShowGroupModal(false)} />
+      )}
     </>
   );
-});
+}

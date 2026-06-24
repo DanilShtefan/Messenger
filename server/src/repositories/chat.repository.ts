@@ -48,9 +48,10 @@ export const chatRepository = {
       include: dialogInclude,
     }),
 
-  create: (participantIds: string[]) =>
+  create: (participantIds: string[], name?: string) =>
     prisma.dialog.create({
       data: {
+        name: name ?? null,
         participants: {
           create: participantIds.map((userId) => ({ userId })),
         },
@@ -60,6 +61,11 @@ export const chatRepository = {
 
   addParticipant: (dialogId: string, userId: string): Promise<Participant> =>
     prisma.participant.create({ data: { dialogId, userId } }),
+
+  removeParticipant: (dialogId: string, userId: string) =>
+    prisma.participant.delete({
+      where: { userId_dialogId: { dialogId, userId } },
+    }),
 
   touch: (dialogId: string) =>
     prisma.dialog.update({ where: { id: dialogId }, data: {} }),

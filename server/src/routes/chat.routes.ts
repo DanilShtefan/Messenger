@@ -9,3 +9,5 @@ chatRoutes.get('/:id', authenticate, chatController.getById);
 chatRoutes.post('/', authenticate, chatController.create);
 chatRoutes.post('/direct', authenticate, chatController.getOrCreateDirect);
 chatRoutes.post('/:id/read', authenticate, chatController.markAsRead);
+chatRoutes.post('/:id/participants', authenticate, chatController.addParticipant);
+chatRoutes.delete('/:id/participants/:userId', authenticate, chatController.removeParticipant);
