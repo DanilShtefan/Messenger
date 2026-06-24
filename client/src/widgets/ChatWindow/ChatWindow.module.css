@@ -26,6 +26,12 @@
   }
 }
 
+@media (min-width: 768px) and (max-width: 1023px) {
+  .window {
+    padding-bottom: calc(var(--player-height, 0rem));
+  }
+}
+
 .headerInfo {
   flex: 1;
   min-width: 0;
