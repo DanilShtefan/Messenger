@@ -3,6 +3,7 @@ import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import { env, corsOrigin } from '../config/env.js';
 import type { JwtPayload } from '../middleware/auth.middleware.js';
+import { prisma } from '../db.js';
 import { followRepository } from '../repositories/follow.repository.js';
 import { handleFighting, cleanupFightingSessions } from './fighting.js';
 import { handleTicTacToe, cleanupTicTacToeSessions } from './tictactoe.js';
@@ -224,6 +225,7 @@ export function initSocket(httpServer: HttpServer): Server {
           userSockets.delete(userId);
           onlineUsers.delete(userId);
           io.emit('user:offline', userId);
+          prisma.user.update({ where: { id: userId }, data: { lastSeenAt: new Date() } }).catch(() => {});
           // Clean up music sessions
           for (const [hostId, joiners] of listeningSessions) {
             if (joiners.has(userId) || hostId === userId) {

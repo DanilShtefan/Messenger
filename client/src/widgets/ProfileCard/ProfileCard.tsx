@@ -22,6 +22,31 @@ interface ProfileCardProps {
   userId: string;
 }
 
+function formatLastSeen(dateStr: string, t: (key: string, opts?: any) => string): string {
+  const now = Date.now();
+  const diff = now - new Date(dateStr).getTime();
+  const sec = Math.floor(diff / 1000);
+
+  if (sec < 60) return t('profile.just_now');
+
+  const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
+  const min = Math.floor(sec / 60);
+  if (min < 60) return rtf.format(-min, 'minute');
+  const hrs = Math.floor(min / 60);
+  if (hrs < 24) return rtf.format(-hrs, 'hour');
+
+  const d = new Date(dateStr);
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  if (d.toDateString() === yesterday.toDateString()) {
+    const time = d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    return t('profile.yesterday_at', { time });
+  }
+  return d.toLocaleDateString();
+}
+
 export function ProfileCard({ userId }: ProfileCardProps) {
   const { t } = useTranslation('common');
   const { profile, isLoading, setProfile } = useFetchProfile(userId);
@@ -233,7 +258,11 @@ export function ProfileCard({ userId }: ProfileCardProps) {
           <h1 className={styles.name}>{profile.displayName}</h1>
 
           <span className={cn(styles.status, online && styles.statusOnline)}>
-            {online ? t('profile.online') : t('profile.offline')}
+            {online
+              ? t('profile.online')
+              : profile.lastSeen
+                ? t('profile.last_seen', { time: formatLastSeen(profile.lastSeen, t) })
+                : t('profile.offline')}
           </span>
 
           <div className={styles.stats}>
