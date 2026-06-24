@@ -150,3 +150,53 @@ This project is optimized for deployment on [Render](https://render.com), includ
 - After sleep/wake cycles, the application will automatically reconnect to the database
 - Migration scripts run each time the server starts to ensure the schema is up-to-date
 - Database seeding only runs if the database is completely empty (useful for fresh deployments)
+
+Admin:
+  Email:    admin@admin.admin
+  Password: 123456
+  Name:     Admin
+
+Alice:
+  Email:    alice@test.com
+  Password: password123
+  Name:     Alice Johnson
+
+Bob:
+  Email:    bob@test.com
+  Password: password123
+  Name:     Bob Smith
+
+Charlie:
+  Email:    charlie@test.com
+  Password: password123
+  Name:     Charlie Brown
+
+Diana:
+  Email:    diana@test.com
+  Password: password123
+  Name:     Diana Prince
+
+Eve:
+  Email:    eve@test.com
+  Password: password123
+  Name:     Eve Wilson
+
+Frank:
+  Email:    frank@test.com
+  Password: password123
+  Name:     Frank Castle
+
+Grace:
+  Email:    grace@test.com
+  Password: password123
+  Name:     Grace Hopper
+
+Henry:
+  Email:    henry@test.com
+  Password: password123
+  Name:     Henry Ford
+
+Iris:
+  Email:    iris@test.com
+  Password: password123
+  Name:     Iris West
